@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import subprocess
+import requests 
 
 def main():
     if len(sys.argv) < 3 or sys.argv[1] != "install":
@@ -10,10 +11,21 @@ def main():
     packageName = sys.argv[2]
 
     print(f"Scanning {packageName}...")
+    print(f"API CALL ON {packageName} is: \n {getPackageInfo(packageName)}")
 
     installation = subprocess.run(["npm", "install", packageName])
 
     sys.exit(installation.returncode)
+
+def getPackageInfo(packageName : str):
+    try:
+        url = f" https://api.npmjs.org/downloads/point/last-week/{packageName}"
+        response = requests.get(url)
+        return response.content
+    except Exception as e:
+        print(f"Error is {e}")
+        return None
+
 
 if __name__ == "__main__":
     main()

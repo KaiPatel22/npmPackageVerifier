@@ -1,6 +1,2 @@
 # npmPackageVerifier
 
-
-
-hi
-

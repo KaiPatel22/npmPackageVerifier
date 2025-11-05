@@ -4,28 +4,62 @@ import subprocess
 import requests 
 
 def main():
-    if len(sys.argv) < 3 or sys.argv[1] != "install":
-        print("Usage: nscan install <package>")
+    if len(sys.argv) < 3 or sys.argv[1] != "install" or sys.argv != "update":
+        print("Usage: nscan install <package> || nscan update <package>")
         sys.exit(1)
 
+
+    typeOfCommand = sys.argv[1]
     packageName = sys.argv[2]
 
     print(f"Scanning {packageName}...")
-    print(f"API CALL ON {packageName} is: \n {getPackageInfo(packageName)}")
+    print(f"Weekly downloads for {packageName}: {getWeeklyDownloads(packageName)}")
+    print(f"Monthly downloads for {packageName}: {getMonthlyDownloads(packageName)}")
 
-    installation = subprocess.run(["npm", "install", packageName])
+    if typeOfCommand == "install":
+        continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
+        while continueInstallation != "y" and continueInstallation != "n":
+            continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
 
-    sys.exit(installation.returncode)
+        if continueInstallation == "y":
+            installation = subprocess.run(["npm", "install", packageName])
+            sys.exit(installation.returncode)
+        elif continueInstallation.lower() == "n":
+            print("Aborting Installation")
+            sys.exit()
+    else:
+        continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
+        while continueUpdate != "y" and continueUpdate != "n":
+            continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
 
-def getPackageInfo(packageName : str):
+        if continueUpdate == "y":
+            update = subprocess.run(["npm", typeOfCommand, packageName])
+            sys.exit(update.returncode)
+        elif continueUpdate.lower() == "n":
+            print("Aborting Update")
+            sys.exit() 
+
+
+def getWeeklyDownloads(packageName : str):
     try:
         url = f" https://api.npmjs.org/downloads/point/last-week/{packageName}"
         response = requests.get(url)
-        return response.content
+        data = response.json()
+        return data.get("downloads")
     except Exception as e:
         print(f"Error is {e}")
         return None
-
+    
+def getMonthlyDownloads(packageName : str):
+    try:
+        url = f" https://api.npmjs.org/downloads/point/last-month/{packageName}"
+        response = requests.get(url)
+        data = response.json()
+        downloads = data.get("downloads")
+        return downloads
+    except Exception as e:
+        print(f"Error is: {e}")
+        return None
 
 if __name__ == "__main__":
     main()

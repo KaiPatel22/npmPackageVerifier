@@ -2,9 +2,10 @@
 import sys
 import subprocess
 import requests 
+from datetime import datetime
 
 def main():
-    if len(sys.argv) < 3 or sys.argv[1] != "install" or sys.argv != "update":
+    if len(sys.argv) < 3 and (sys.argv[1] != "install" or sys.argv[1] != "update"):
         print("Usage: nscan install <package> || nscan update <package>")
         sys.exit(1)
 
@@ -15,6 +16,7 @@ def main():
     print(f"Scanning {packageName}...")
     print(f"Weekly downloads for {packageName}: {getWeeklyDownloads(packageName)}")
     print(f"Monthly downloads for {packageName}: {getMonthlyDownloads(packageName)}")
+    print(f"Last update to {packageName} is: {getLastUpdate(packageName)}")
 
     if typeOfCommand == "install":
         continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
@@ -59,6 +61,18 @@ def getMonthlyDownloads(packageName : str):
         return downloads
     except Exception as e:
         print(f"Error is: {e}")
+        return None
+
+def getLastUpdate(packageName : str):
+    try:
+        url = f"https://registry.npmjs.org/{packageName}"
+        response = requests.get(url)
+        data = response.json()
+        date = data["time"]["modified"]
+        dt = datetime.fromisoformat(date.replace("Z", "+00:00"))
+        return dt.strftime("%d-%m-%Y %H:%M:%S")
+    except Exception as e:
+        print(f"Error is {e}")
         return None
 
 if __name__ == "__main__":

@@ -2,8 +2,9 @@
 import sys
 import subprocess
 import requests 
-from datetime import datetime
+from datetime import datetime, timedelta
 import platform 
+from typosquatting import typosquattingDummyFunction
 
 def main():
     if len(sys.argv) < 3 and (sys.argv[1] != "install" or sys.argv[1] != "update"):
@@ -14,10 +15,37 @@ def main():
     typeOfCommand = sys.argv[1]
     packageName = sys.argv[2]
 
+    weeklyDownloads = getWeeklyDownloads(packageName)
+    monthlyDownloads = getMonthlyDownloads(packageName)
+    lastUpdate = getLastUpdate(packageName)
+
     print(f"Scanning {packageName}...")
-    print(f"Weekly downloads for {packageName}: {getWeeklyDownloads(packageName)}")
-    print(f"Monthly downloads for {packageName}: {getMonthlyDownloads(packageName)}")
-    print(f"Last update to {packageName} is: {getLastUpdate(packageName)}")
+
+    downloadLowerBound = (weeklyDownloads * 4) * 0.9
+    downloadUpperBound = (weeklyDownloads * 4) * 1.1
+
+    def isPackageOutdated(lastUpdate : str):
+        lastUpdateDate = datetime.strptime(lastUpdate, "%d-%m-%Y %H:%M:%S")
+        sixMonthsAgo = datetime.now() - timedelta(days=6 * 30)
+        return lastUpdateDate < sixMonthsAgo
+
+
+
+    if (monthlyDownloads < downloadLowerBound) or (monthlyDownloads > downloadUpperBound) or (weeklyDownloads < 100000) or (monthlyDownloads < 1000000):
+        print("WARNING: Package download information is suspicious")
+        redText(f"Weekly downloads for {packageName}: {weeklyDownloads}")
+        redText(f"Monthly downloads for {packageName}: {monthlyDownloads}")
+        typosquattingDummyFunction()
+    else:
+        greenText(f"Weekly downloads for {packageName}: {weeklyDownloads}")
+        greenText(f"Monthly downloads for {packageName}: {monthlyDownloads}")
+    if (isPackageOutdated(lastUpdate)):
+        print("WARNING: Package last update information is suspicious")
+        redText(f"Last update to {packageName} is: {lastUpdate}")
+        typosquattingDummyFunction()
+    else:
+        greenText(f"Last update to {packageName} is: {lastUpdate}")
+
 
     if typeOfCommand == "install":
         continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
@@ -77,6 +105,12 @@ def getLastUpdate(packageName : str):
     except Exception as e:
         print(f"Error is {e}")
         return None
+    
+def redText(text):
+    print(f"\033[31m{text}\033[0m")
+
+def greenText(text):
+    print(f"\033[32m{text}\033[0m")
 
 if __name__ == "__main__":
     main()

@@ -6,12 +6,7 @@ def typosquattingDummyFunction():
 
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
-    listOfNewNames = []
-    listOfNewNames.append(packageName + "s")
-    listOfNewNames.append(packageName + packageName[-1])
-    listOfNewNames.append(packageName.strip(-1))
-    
-    print(listOfNewNames)
+    pass
 
 
 levenshteinCheck("Kai")
@@ -72,12 +67,6 @@ def homographCheck(packageName : str):
         "/": ["∕ \u2215"],
         "\\": ["＼ \uFF3C"],
     }
-    
-    for character in packageName:
-        if character in HOMOGRAPH_MAP:
-            dodgyChars = HOMOGRAPH_MAP[character]
-            for dodgyChar in dodgyChars:
-                
 
 
 # Check 3: Combosquatting attacks

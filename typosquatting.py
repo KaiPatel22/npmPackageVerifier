@@ -1,2 +1,0 @@
-def typosquattingDummyFunction():
-    print("dummy")

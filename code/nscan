@@ -9,8 +9,6 @@ from databaseSetup import setupDatabase, addPackageToDatabase, getPackageInfo
 
 def main():
     setupDatabase()
-    addPackageToDatabase("lodash", getWeeklyDownloads("lodash"), getMonthlyDownloads("lodash"), getLastUpdate("lodash")) #DEBUG LINE TO MAKE SURE IT WORKS (CURRENTLY NOT WORKING)
-    print(getPackageInfo("lodash")) #DEBUG LINE TO MAKE SURE IT WORKS
     if len(sys.argv) < 3 and (sys.argv[1] != "install" or sys.argv[1] != "update"):
         print("Usage: nscan install <package> || nscan update <package>")
         sys.exit(1)

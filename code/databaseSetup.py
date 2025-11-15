@@ -21,7 +21,7 @@ def addPackageToDatabase(packageName : str, weeklyDownloads : int, monthlyDownlo
     cursor = connect.cursor()
 
     try:
-        cursor.execute('INSERT OR REPLACE INTO legitimate (packageName, weeklyDownloads, monthlyDownloads, lastUpdate) VALUES (?, ?, ?, ?) ', (packageName, weeklyDownloads, monthlyDownloads, lastUpdate))
+        cursor.execute('INSERT INTO legitimate (packageName, weeklyDownloads, monthlyDownloads, lastUpdate) VALUES (?, ?, ?, ?) ', (packageName, weeklyDownloads, monthlyDownloads, lastUpdate))
         connect.commit()
         print(f"Package {packageName} added successfully.")
     except sqlite3.IntegrityError as e:

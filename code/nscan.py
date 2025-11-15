@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import platform 
 from npmCalls import getWeeklyDownloads, getMonthlyDownloads, getLastUpdate
 from typosquatting import typosquattingDummyFunction
+from databaseSetup import getPackageInfo
 
 def main():
     if len(sys.argv) < 3 and (sys.argv[1] != "install" or sys.argv[1] != "update"):
@@ -15,11 +16,18 @@ def main():
     typeOfCommand = sys.argv[1]
     packageName = sys.argv[2]
 
-    weeklyDownloads = getWeeklyDownloads(packageName)
-    monthlyDownloads = getMonthlyDownloads(packageName)
-    lastUpdate = getLastUpdate(packageName)
+    if getPackageInfo(packageName) is None:
+        print(f"Getting information for {packageName}...")
+        weeklyDownloads = getWeeklyDownloads(packageName)
+        monthlyDownloads = getMonthlyDownloads(packageName)
+        lastUpdate = getLastUpdate(packageName)
+    else:
+        print(f"Fetching {packageName} information from local database...")
+        packageInfo = getPackageInfo(packageName)
+        weeklyDownloads = packageInfo[2]
+        monthlyDownloads = packageInfo[3]
+        lastUpdate = packageInfo[4]
 
-    print(f"Scanning {packageName}...")
 
     downloadLowerBound = (weeklyDownloads * 4) * 0.9
     downloadUpperBound = (weeklyDownloads * 4) * 1.1

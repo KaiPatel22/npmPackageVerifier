@@ -9,7 +9,7 @@ def setupDatabase():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 packageName TEXT UNIQUE NOT NULL,
                 weeklyDownloads INTEGER NOT NULL,
-                    monthlyDownloads INTEGER NOT NULL,
+                monthlyDownloads INTEGER NOT NULL,
                 lastUpdate TIMESTAMP NOT NULL)
                 ''')
     connect.commit()
@@ -21,19 +21,15 @@ def addPackageToDatabase(packageName : str, weeklyDownloads : int, monthlyDownlo
     cursor = connect.cursor()
 
     try:
-        cursor.execute('''
-        INSERT OR REPLACE INTO legitimate (packageName, weeklyDownloads, monthlyDownloads, lastUpdate)
-        VALUES (?, ?, ?, ?) ''', (packageName, weeklyDownloads, monthlyDownloads, lastUpdate))
+        cursor.execute('INSERT OR REPLACE INTO legitimate (packageName, weeklyDownloads, monthlyDownloads, lastUpdate) VALUES (?, ?, ?, ?) ', (packageName, weeklyDownloads, monthlyDownloads, lastUpdate))
+        connect.commit()
         print(f"Package {packageName} added successfully.")
     except sqlite3.IntegrityError as e:
-        cursor.execute('''
-            UPDATE legitimate 
-            SET weeklyDownloads = ?, monthlyDownloads = ?, lastUpdate = ?
-            WHERE packageName = ?
-        ''', (weeklyDownloads, monthlyDownloads, lastUpdate, packageName))
+        cursor.execute('UPDATE legitimate SET weeklyDownloads = ?, monthlyDownloads = ?, lastUpdate = ? WHERE packageName = ?', (weeklyDownloads, monthlyDownloads, lastUpdate, packageName))
         connect.commit()
         print(f"Updated {packageName} in database")
     finally:
+        connect.commit()
         connect.close()
 
 def getPackageInfo(packageName : str):

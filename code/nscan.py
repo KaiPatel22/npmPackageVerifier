@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import sys
 import subprocess
-import requests 
 from datetime import datetime, timedelta
 import platform 
+from npmCalls import getWeeklyDownloads, getMonthlyDownloads, getLastUpdate
 from typosquatting import typosquattingDummyFunction
 
 def main():
@@ -72,39 +72,6 @@ def main():
             print(f"Aborting update of {packageName}")
             sys.exit()
 
-
-def getWeeklyDownloads(packageName : str):
-    try:
-        url = f" https://api.npmjs.org/downloads/point/last-week/{packageName}"
-        response = requests.get(url)
-        data = response.json()
-        return data.get("downloads")
-    except Exception as e:
-        print(f"Error is {e}")
-        return None
-    
-def getMonthlyDownloads(packageName : str):
-    try:
-        url = f" https://api.npmjs.org/downloads/point/last-month/{packageName}"
-        response = requests.get(url)
-        data = response.json()
-        downloads = data.get("downloads")
-        return downloads
-    except Exception as e:
-        print(f"Error is: {e}")
-        return None
-
-def getLastUpdate(packageName : str):
-    try:
-        url = f"https://registry.npmjs.org/{packageName}"
-        response = requests.get(url)
-        data = response.json()
-        date = data["time"]["modified"]
-        dt = datetime.fromisoformat(date.replace("Z", "+00:00"))
-        return dt.strftime("%d-%m-%Y %H:%M:%S")
-    except Exception as e:
-        print(f"Error is {e}")
-        return None
     
 def redText(text):
     print(f"\033[31m{text}\033[0m")

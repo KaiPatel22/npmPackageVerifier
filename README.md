@@ -15,3 +15,7 @@ Mac:
     chmod +x nscan
     
     ./nscan install <package name>
+
+
+## Used for getting the top npm packages
+https://github.com/wooorm/npm-high-impact?utm_source=chatgpt.com

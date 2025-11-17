@@ -1,15 +1,54 @@
 import Levenshtein
-
+import sqlite3
+from npmCalls import checkPackageExists
 
 def typosquattingDummyFunction():
     print("dummy")
 
+
+def createTyposquattingDatabase():
+    connect = sqlite3.connect("database/typosquatted.db")
+    cursor = connect.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS typosquatted(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                packageName TEXT UNIQUE NOT NULL,
+                typosquattedFrom TEXT NOT NULL,
+                weeklyDownloads INTEGER NOT NULL,
+                monthlyDownloads INTEGER NOT NULL,
+                lastUpdate TIMESTAMP NOT NULL, 
+                detectionMethods TEXT NOT NULL)
+                ''')
+    connect.commit()
+    connect.close()
+    print("Typosquatting database setup complete.")
+
+def packageNamesFromDatabase():
+    connect = sqlite3.connect("database/legitimate.db")
+    cursor = connect.cursor()
+    cursor.execute('''SELECT packageName FROM legitimate''')
+    rows = cursor.fetchall()
+    packageNames = [row[0] for row in rows]
+    
+    for package in packageNames:
+        levenshteinCheck(package)
+
+    connect.close()
+    return packageNames
+
+
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
-    pass
+    connect = sqlite3.connect("database/typosquatted.db")
+    cursor = connect.cursor()
+    if checkPackageExists(packageName + "s") is not False:
+        weeklyDownloads, monthlyDownloads, lastUpdate = checkPackageExists(packageName + "s")
+        cursor.execute('INSERT INTO typosquatted (packageName, typosquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods) VALUES (?, ?, ?, ?, ?, ?)',(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end"))
+        connect.commit()
+        print(f"Typosquatted package found: {packageName + 's'}")
+    connect.close()
 
 
-levenshteinCheck("Kai")
 # Check 2: Homograph attacks
 def homographCheck(packageName : str):
     HOMOGRAPH_MAP = {
@@ -76,3 +115,8 @@ def combosquattingCheck(packageName : str):
 # Check 4: Hyphen/underscore manipulation 
 def hyphenUnderscoreCheck(packageName : str):
     pass
+
+
+if __name__ == "__main__":
+    createTyposquattingDatabase()
+    packageNamesFromDatabase()

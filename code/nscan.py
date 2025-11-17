@@ -17,7 +17,7 @@ def main():
     packageName = sys.argv[2]
 
     if getPackageInfo(packageName) is None:
-        print(f"Getting information for {packageName}...")
+        print(f"Package not in database, getting information for {packageName}...")
         weeklyDownloads = getWeeklyDownloads(packageName)
         monthlyDownloads = getMonthlyDownloads(packageName)
         lastUpdate = getLastUpdate(packageName)

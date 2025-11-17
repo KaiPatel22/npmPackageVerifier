@@ -14,7 +14,7 @@ def setupDatabase():
                 ''')
     connect.commit()
     connect.close()
-    print("Database setup complete.")
+    print("Legitimate database setup complete.")
 
 def addPackageToDatabase(packageName : str, weeklyDownloads : int, monthlyDownloads : int, lastUpdate : str):
     connect = sqlite3.connect("database/legitimate.db")

@@ -33,6 +33,8 @@ def packageNamesFromDatabase():
     
     for package in packageNames:
         levenshteinCheck(package)
+        homographCheck(package)
+
 
     connect.close()
     return packageNames
@@ -49,14 +51,9 @@ def addPackageToTyposqauttedDatabase(packageName: str, typoSquattedFrom : str, w
 
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
-    connect = sqlite3.connect("database/typosquatted.db")
-    cursor = connect.cursor()
     if checkPackageExists(packageName + "s") is not False:
         weeklyDownloads, monthlyDownloads, lastUpdate = checkPackageExists(packageName + "s")
         addPackageToTyposqauttedDatabase(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end")
-
-    connect.close()
-
 
 # Check 2: Homograph attacks
 def homographCheck(packageName : str):

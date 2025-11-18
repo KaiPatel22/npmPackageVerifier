@@ -6,8 +6,6 @@ def checkPackageExists(packageName : str):
         url = f"https://registry.npmjs.org/{packageName}"
         response = requests.get(url)
         if response.status_code == 200:
-            url = f"https://registry.npmjs.org/{packageName}"
-            response = requests.get(url)
             data = response.json()
             date = data["time"]["modified"]
             dt = datetime.fromisoformat(date.replace("Z", "+00:00"))

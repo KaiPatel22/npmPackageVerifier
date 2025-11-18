@@ -43,9 +43,12 @@ def levenshteinCheck(packageName: str):
     cursor = connect.cursor()
     if checkPackageExists(packageName + "s") is not False:
         weeklyDownloads, monthlyDownloads, lastUpdate = checkPackageExists(packageName + "s")
-        cursor.execute('INSERT INTO typosquatted (packageName, typosquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods) VALUES (?, ?, ?, ?, ?, ?)',(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end"))
-        connect.commit()
-        print(f"Typosquatted package found: {packageName + 's'}")
+        try:
+            cursor.execute('INSERT INTO typosquatted (packageName, typosquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods) VALUES (?, ?, ?, ?, ?, ?)',(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end"))
+            connect.commit()
+            print(f"Typosquatted package found: {packageName + 's'}")
+        except sqlite3.IntegrityError:
+            print(f"Package {packageName + 's'} already exists in the database.")
     connect.close()
 
 

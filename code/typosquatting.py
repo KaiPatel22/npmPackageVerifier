@@ -117,7 +117,8 @@ def homographCheck(packageName : str):
     for letter in packageName:
         if letter in HOMOGRAPH_MAP:
             for homograph in HOMOGRAPH_MAP[letter]:
-                modifiedName = packageName.replace(letter,homograph)
+                homograph_stripped = homograph.split(" ")[1] # gets the actual homographic character
+                modifiedName = packageName.replace(letter,homograph_stripped)
                 if checkPackageExists(modifiedName) is not False:
                     weeklyDownloads = getWeeklyDownloads(modifiedName)
                     monthlyDownloads = getMonthlyDownloads(modifiedName)

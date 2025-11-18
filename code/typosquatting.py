@@ -51,9 +51,11 @@ def addPackageToTyposqauttedDatabase(packageName: str, typoSquattedFrom : str, w
 
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
+    print(f"Performing Levenshtein check for package: {packageName}")
     if checkPackageExists(packageName + "s") is not False:
         weeklyDownloads, monthlyDownloads, lastUpdate = checkPackageExists(packageName + "s")
         addPackageToTyposqauttedDatabase(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end")
+
 
 # Check 2: Homograph attacks
 def homographCheck(packageName : str):

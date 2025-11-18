@@ -17,7 +17,7 @@ def setupDatabase():
     print("Legitimate database setup complete.")
 
 def addPackageToDatabase(packageName : str, weeklyDownloads : int, monthlyDownloads : int, lastUpdate : str):
-    connect = sqlite3.connect("database/legitimate.db")
+    connect = sqlite3.connect(f"database/legitimate.db")
     cursor = connect.cursor()
 
     try:

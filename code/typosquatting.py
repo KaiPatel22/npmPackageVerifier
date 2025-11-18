@@ -1,6 +1,7 @@
 import Levenshtein
 import sqlite3
 from npmCalls import checkPackageExists
+from databaseSetup import addPackageToDatabase
 
 def typosquattingDummyFunction():
     print("dummy")
@@ -36,6 +37,15 @@ def packageNamesFromDatabase():
     connect.close()
     return packageNames
 
+def addPackageToTyposqauttedDatabase(packageName: str, typoSquattedFrom : str, weeklyDownloads: int, monthlyDownloads: int, lastUpdate: str, detectionMethods: str):
+    connect = sqlite3.connect("database/typosquatted.db")
+    cursor = connect.cursor()
+    cursor.execute('''
+        INSERT OR IGNORE INTO typosquatted (packageName, typosquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods)
+        VALUES (?, ?, ?, ?, ?, ?)''', (packageName, typoSquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods))
+    print(f"Added {packageName} to typosquatted database, detected via {detectionMethods}")
+    connect.commit()
+    connect.close()
 
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
@@ -43,12 +53,8 @@ def levenshteinCheck(packageName: str):
     cursor = connect.cursor()
     if checkPackageExists(packageName + "s") is not False:
         weeklyDownloads, monthlyDownloads, lastUpdate = checkPackageExists(packageName + "s")
-        try:
-            cursor.execute('INSERT INTO typosquatted (packageName, typosquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods) VALUES (?, ?, ?, ?, ?, ?)',(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end"))
-            connect.commit()
-            print(f"Typosquatted package found: {packageName + 's'}")
-        except sqlite3.IntegrityError:
-            print(f"Package {packageName + 's'} already exists in the database.")
+        addPackageToTyposqauttedDatabase(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end")
+
     connect.close()
 
 

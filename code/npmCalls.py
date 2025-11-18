@@ -15,7 +15,7 @@ def checkPackageExists(packageName : str):
         else:
             return False
     except Exception as e:
-        print(f"Error is {e}")
+        print(f"CheckPackageExists: Error is {e}")
         return False
 
 def getWeeklyDownloads(packageName : str):
@@ -25,7 +25,7 @@ def getWeeklyDownloads(packageName : str):
         data = response.json()
         return data.get("downloads")
     except Exception as e:
-        print(f"Error is {e}")
+        print(f"getWeeklyDownloads: Error is {e}")
         return None
     
 def getMonthlyDownloads(packageName : str):
@@ -36,7 +36,7 @@ def getMonthlyDownloads(packageName : str):
         downloads = data.get("downloads")
         return downloads
     except Exception as e:
-        print(f"Error is: {e}")
+        print(f"getMonthlyDownloads: Error is {e}")
         return None
 
 def getLastUpdate(packageName : str):
@@ -48,5 +48,5 @@ def getLastUpdate(packageName : str):
         dt = datetime.fromisoformat(date.replace("Z", "+00:00"))
         return dt.strftime("%d-%m-%Y %H:%M:%S")
     except Exception as e:
-        print(f"Error is {e}")
+        print(f"getLastUpdate: Error is {e}")
         return None

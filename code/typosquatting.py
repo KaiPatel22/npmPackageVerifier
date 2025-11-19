@@ -34,6 +34,7 @@ def packageNamesFromDatabase():
     for package in packageNames:
         levenshteinCheck(package)
         homographCheck(package)
+        combosquattingCheck(package)
 
 
     connect.close()
@@ -49,11 +50,22 @@ def addPackageToTyposqauttedDatabase(packageName: str, typoSquattedFrom : str, w
     connect.commit()
     connect.close()
 
+def isPackageInTyposquattedDatabase(packageName: str) -> bool:
+    connect = sqlite3.connect("database/typosquatted.db")
+    cursor = connect.cursor()
+    cursor.execute('''SELECT COUNT(*) FROM typosquatted WHERE packageName = ?''', (packageName,))
+    count = cursor.fetchone()[0]
+    connect.close()
+    return count > 0
+
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
-    if checkPackageExists(packageName + "s") is not False:
-        weeklyDownloads, monthlyDownloads, lastUpdate = checkPackageExists(packageName + "s")
-        addPackageToTyposqauttedDatabase(packageName + "s", packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end")
+    modifiedName = packageName + "s"
+    if not isPackageInTyposquattedDatabase(modifiedName):
+        print(f"Checking Levenshtein Distance: {modifiedName}")
+        if checkPackageExists(modifiedName) is not False:
+            weeklyDownloads, monthlyDownloads, lastUpdate = checkPackageExists(modifiedName)
+            addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, "Levenshtein Distance - adding s to end")
 
 
 # Check 2: Homograph attacks
@@ -119,17 +131,48 @@ def homographCheck(packageName : str):
             for homograph in HOMOGRAPH_MAP[letter]:
                 homograph_stripped = homograph.split(" ")[1] # gets the actual homographic character
                 modifiedName = packageName.replace(letter,homograph_stripped)
-                if checkPackageExists(modifiedName) is not False:
-                    weeklyDownloads = getWeeklyDownloads(modifiedName)
-                    monthlyDownloads = getMonthlyDownloads(modifiedName)
-                    lastUpdate = getLastUpdate(modifiedName)
+                if not isPackageInTyposquattedDatabase(modifiedName):
+                    print(f"Checking homograph attack: {modifiedName}")
+                    if checkPackageExists(modifiedName) is not False:
+                        weeklyDownloads = getWeeklyDownloads(modifiedName)
+                        monthlyDownloads = getMonthlyDownloads(modifiedName)
+                        lastUpdate = getLastUpdate(modifiedName)
 
-                    addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, f"Homograph attack - replaced {letter} with {homograph}")
+                        addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, f"Homograph attack - replaced {letter} with {homograph}")
 
 
 # Check 3: Combosquatting attacks
 def combosquattingCheck(packageName : str):
-    pass
+    prefixes = [
+    "node-", "js-", "ts-", "ng-", "react-", "vue-", "next-", "express-", "cli-", "utils-", "lib-",
+    "crypto-", "secure-", "safe-", "auth-", "jwt-",
+    "@types-", "@angular-", "@aws-", "@firebase-", "@google-", "@amazn-", "@goog1e-", "@microsof-",
+    "npmjs-", "github-"
+    ]
+
+    suffixes = [
+    "-js", "-node", "-utils", "-helper", "-core", "-service", "-api", "-server", "-cli", "-module",
+    "-v2", "-v3", "-beta", "-dev", "-next", "-lite", "-min", "-pro", "-plus",
+    "-pkg", "-package", "-script", "-lib"
+    ]
+
+    for prefix in prefixes:
+        modifiedName = prefix + packageName
+        if not isPackageInTyposquattedDatabase(modifiedName):
+            print(f"Checking combosquatting with prefix: {modifiedName}")
+            result = checkPackageExists(modifiedName)
+            if result is not False:
+                weeklyDownloads, monthlyDownloads, lastUpdate = result
+                addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, f"Combosquatting - added prefix {prefix}")
+   
+    for suffix in suffixes:
+        modifiedName = packageName + suffix
+        if not isPackageInTyposquattedDatabase(modifiedName):
+            print(f"Checking combosquatting with suffix: {modifiedName}")
+            result = checkPackageExists(modifiedName)
+            if result is not False:
+                weeklyDownloads, monthlyDownloads, lastUpdate = result
+            addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, f"Combosquatting - added prefix {prefix}")
 
 # Check 4: Hyphen/underscore manipulation 
 def hyphenUnderscoreCheck(packageName : str):
@@ -137,5 +180,4 @@ def hyphenUnderscoreCheck(packageName : str):
 
 
 if __name__ == "__main__":
-    createTyposquattingDatabase()
     packageNamesFromDatabase()

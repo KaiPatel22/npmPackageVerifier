@@ -32,8 +32,8 @@ def packageNamesFromDatabase():
     packageNames = [row[0] for row in rows]
     
     for package in packageNames:
-        levenshteinCheck(package)
-        homographCheck(package)
+        # levenshteinCheck(package)
+        # homographCheck(package)
         combosquattingCheck(package)
 
 
@@ -172,7 +172,7 @@ def combosquattingCheck(packageName : str):
             result = checkPackageExists(modifiedName)
             if result is not False:
                 weeklyDownloads, monthlyDownloads, lastUpdate = result
-            addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, f"Combosquatting - added prefix {prefix}")
+                addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, f"Combosquatting - added prefix {prefix}")
 
 # Check 4: Hyphen/underscore manipulation 
 def hyphenUnderscoreCheck(packageName : str):

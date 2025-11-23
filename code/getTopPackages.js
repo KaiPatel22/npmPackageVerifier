@@ -1,5 +1,5 @@
 import { npmHighImpact } from 'npm-high-impact'
 
-const top20 = npmHighImpact.slice(0, 20)
+const top30 = npmHighImpact.slice(0, 30)
 
-console.log(JSON.stringify(top20))
+console.log(JSON.stringify(top30))

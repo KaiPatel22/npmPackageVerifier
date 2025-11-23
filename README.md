@@ -34,3 +34,16 @@ The python file should create a database called "legitimate.db" in the database 
 
 Additional:
 https://marketplace.visualstudio.com/items?itemName=qwtel.sqlite-viewer <- Use SQLite Viewer VSCode extension to be able to open the database in a readable format.
+
+
+## To change number of legitimate packages
+
+Change slice value in code/getTopPackages.js
+Run:
+    node code/getTopPackages.js
+
+Then:
+    python code/populateDatabase.py
+
+Finally:
+    python code/typosquatting.py

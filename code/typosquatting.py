@@ -46,10 +46,10 @@ def packageNamesFromDatabase():
     packageNames = [row[0] for row in rows]
     
     for package in packageNames:
-        # levenshteinCheck(package)
+        levenshteinCheck(package)
         homographCheck(package)
-        # combosquattingCheck(package)
-        # hyphenUnderscoreCheck(package)
+        combosquattingCheck(package)
+        hyphenUnderscoreCheck(package)
 
 
     connect.close()

@@ -50,3 +50,41 @@ def getLastUpdate(packageName : str):
     except Exception as e:
         print(f"getLastUpdate: Error is {e}")
         return None
+    
+def getBatchWeeklyDownloads(batchString: str):
+    try:
+        url = f"https://api.npmjs.org/downloads/point/last-week/{batchString}"
+        response = requests.get(url)
+        data = response.json()
+        return {pkg: data.get("downloads") for pkg in data}
+    except Exception as e:
+        print(f"getBatchWeeklyDownloads: Error is {e}")
+        return {}
+
+def getBatchMonthlyDownloads(batchString: str):
+    try:
+        url = f"https://api.npmjs.org/downloads/point/last-month/{batchString}"
+        response = requests.get(url)
+        data = response.json()
+        return {pkg: data.get("downloads") for pkg in data}
+    except Exception as e:
+        print(f"getBatchMonthlyDownloads: Error is {e}")
+        return {}
+    
+def getBatchLastUpdate(packageNames: list):
+    try:
+        lastUpdates = {}
+        for packageName in packageNames:
+            url = f"https://registry.npmjs.org/{packageName}"
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                date = data["time"]["modified"]
+                dt = datetime.fromisoformat(date.replace("Z", "+00:00"))
+                lastUpdates[packageName] = dt.strftime("%d-%m-%Y %H:%M:%S")
+            else:
+                lastUpdates[packageName] = None
+        return lastUpdates
+    except Exception as e:
+        print(f"getBatchLastUpdate: Error is {e}")
+        return {}

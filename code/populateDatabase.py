@@ -20,15 +20,18 @@ def main():
     result = subprocess.run(["node", "code/getTopPackages.js"], capture_output=True, text=True)
     topPackages = json.loads(result.stdout)
     packagesToAdd = [pkg for pkg in topPackages if not isPackageInLegimateDatabase(pkg)]
-    batchString = ",".join(packagesToAdd)
+    nonScopedPackages = [pkg for pkg in packagesToAdd if not pkg.startswith('@')]
+    batchString = ",".join(nonScopedPackages)
 
     weeklyData = getBatchWeeklyDownloads(batchString)
     monthlyData = getBatchMonthlyDownloads(batchString)
-    lastUpdateData = getBatchLastUpdate(packagesToAdd)
+    lastUpdateData = getBatchLastUpdate(nonScopedPackages)
+
+    print(f"weeklyData: {weeklyData}")
 
     for packageName in packagesToAdd:
-        weeklyDownloads = weeklyData.get(packageName).get("downloads")
-        monthlyDownloads = monthlyData.get(packageName).get("downloads")
+        weeklyDownloads = weeklyData.get(packageName, {}).get("downloads") if packageName in weeklyData else None
+        monthlyDownloads = monthlyData.get(packageName, {}).get("downloads") if packageName in monthlyData else None
         lastUpdate = lastUpdateData.get(packageName)
         
         if weeklyDownloads and monthlyDownloads and lastUpdate:
@@ -38,6 +41,7 @@ def main():
             print(f"Failed to retrieve data for package: {packageName}")
 
     print(f"Database population complete for {len(packagesToAdd)} packages")
+
 
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ def getBatchWeeklyDownloads(batchString: str):
         url = f"https://api.npmjs.org/downloads/point/last-week/{batchString}"
         response = requests.get(url)
         data = response.json()
-        return {pkg: data.get("downloads") for pkg in data}
+        return {pkg: data[pkg] for pkg in data if pkg != "start" and pkg != "end"}
     except Exception as e:
         print(f"getBatchWeeklyDownloads: Error is {e}")
         return {}
@@ -66,7 +66,7 @@ def getBatchMonthlyDownloads(batchString: str):
         url = f"https://api.npmjs.org/downloads/point/last-month/{batchString}"
         response = requests.get(url)
         data = response.json()
-        return {pkg: data.get("downloads") for pkg in data}
+        return {pkg: data[pkg] for pkg in data if pkg != "start" and pkg != "end"}
     except Exception as e:
         print(f"getBatchMonthlyDownloads: Error is {e}")
         return {}

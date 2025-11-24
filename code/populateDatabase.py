@@ -27,8 +27,8 @@ def main():
     lastUpdateData = getBatchLastUpdate(packagesToAdd)
 
     for packageName in packagesToAdd:
-        weeklyDownloads = weeklyData.get(packageName)
-        monthlyDownloads = monthlyData.get(packageName)
+        weeklyDownloads = weeklyData.get(packageName).get("downloads")
+        monthlyDownloads = monthlyData.get(packageName).get("downloads")
         lastUpdate = lastUpdateData.get(packageName)
         
         if weeklyDownloads and monthlyDownloads and lastUpdate:

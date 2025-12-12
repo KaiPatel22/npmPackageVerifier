@@ -17,6 +17,21 @@ def checkPackageExists(packageName : str):
     except Exception as e:
         print(f"CheckPackageExists: Error is {e}")
         return False
+    
+def checkBulkPackageExists(packageNames : list): # Output from the fucntion is a dictionary like {'react': True, 'wvrvnwuvow': False}
+    try:
+        results = {}
+        batchString = ",".join(packageNames)
+        url = f"https://api.npmjs.org/downloads/point/last-week/{batchString}"
+        response = requests.get(url)
+        data = response.json()
+        for packageName in packageNames:
+            results[packageName] = (data.get(packageName) is not None)
+
+        return results
+    except Exception as e:
+        print(f"checkBulkPackageExists: Error is {e}")
+        return {}
 
 def getWeeklyDownloads(packageName : str):
     try:
@@ -88,3 +103,6 @@ def getBatchLastUpdate(packageNames: list):
     except Exception as e:
         print(f"getBatchLastUpdate: Error is {e}")
         return {}
+    
+
+print(checkBulkPackageExists(["express", "react", "vwewvew", "lodash"]))

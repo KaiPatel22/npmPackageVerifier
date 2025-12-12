@@ -1,6 +1,6 @@
 import Levenshtein
 import sqlite3
-from npmCalls import checkPackageExists, getWeeklyDownloads, getMonthlyDownloads, getLastUpdate
+from npmCalls import checkPackageExists
 
 def typosquattingDummyFunction():
     print("dummy")
@@ -47,7 +47,7 @@ def packageNamesFromDatabase():
     
     for package in packageNames:
         levenshteinCheck(package)
-        homographCheck(package)
+        # homographCheck(package)
         combosquattingCheck(package)
         hyphenUnderscoreCheck(package)
 

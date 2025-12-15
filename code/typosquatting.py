@@ -159,6 +159,8 @@ def levenshteinCheck(packageName: str):
         generated.append((modifiedName, packageName, f"Levenshtein distance - removed character at position {i}"))
     
     for i in range(len(packageName) - 1):
+        if packageName[i] == packageName[i+1]:
+            continue
         modifiedName = packageName[:i] + packageName[i+1] + packageName[i] + packageName[i+2:]
         generated.append((modifiedName, packageName, f"Levenshtein distance - swapped characters at positions {i} and {i+1}"))
 

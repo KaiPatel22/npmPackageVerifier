@@ -26,7 +26,8 @@ def checkBulkPackageExists(packageNames : list): # Output from the fucntion is a
         response = requests.get(url)
         data = response.json()
         for packageName in packageNames:
-            results[packageName] = (data.get(packageName) is not None)
+            pkg_data = data.get(packageName)
+            results[packageName] = (pkg_data is not None and isinstance(pkg_data, dict))
 
         return results
     except Exception as e:
@@ -103,6 +104,3 @@ def getBatchLastUpdate(packageNames: list):
     except Exception as e:
         print(f"getBatchLastUpdate: Error is {e}")
         return {}
-    
-
-print(checkBulkPackageExists(["express", "react", "vwewvew", "lodash"]))

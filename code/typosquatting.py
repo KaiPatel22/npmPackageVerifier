@@ -1,6 +1,7 @@
 import Levenshtein
 import sqlite3
-from npmCalls import checkPackageExists
+from npmCalls import checkPackageExists, checkBulkPackageExists, getBatchWeeklyDownloads, getBatchMonthlyDownloads, getBatchLastUpdate
+import time 
 
 def typosquattingDummyFunction():
     print("dummy")
@@ -44,13 +45,16 @@ def packageNamesFromDatabase():
     cursor.execute('''SELECT packageName FROM legitimate''')
     rows = cursor.fetchall()
     packageNames = [row[0] for row in rows]
+
+    possibleTyposquatting = []
     
     for package in packageNames:
-        levenshteinCheck(package)
-        # homographCheck(package)
-        combosquattingCheck(package)
-        hyphenUnderscoreCheck(package)
+        possibleTyposquatting.extend(levenshteinCheck(package))
+        possibleTyposquatting.extend(homographCheck(package))
+        possibleTyposquatting.extend(combosquattingCheck(package))
+        possibleTyposquatting.extend(hyphenUnderscoreCheck(package))
 
+    processBatches(possibleTyposquatting)
 
     connect.close()
     return packageNames
@@ -61,6 +65,13 @@ def addPackageToTyposqauttedDatabase(packageName: str, typoSquattedFrom : str, w
     cursor.execute('''
         INSERT OR IGNORE INTO typosquatted (packageName, typosquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods)
         VALUES (?, ?, ?, ?, ?, ?)''', (packageName, typoSquattedFrom, weeklyDownloads, monthlyDownloads, lastUpdate, detectionMethods))
+    connect.commit()
+    connect.close()
+
+def addPackageToNotCreatedDatabase(packageName: str):
+    connect = sqlite3.connect("database/notCreated.db")
+    cursor = connect.cursor()
+    cursor.execute('''INSERT OR IGNORE INTO notCreated (packageName) VALUES (?)''', (packageName,))
     connect.commit()
     connect.close()
 
@@ -80,6 +91,50 @@ def isPackageInNotCreatedDatabase(packageName: str) -> bool:
     connect.close()
     return count > 0
 
+def processBatches(generatedList : list):
+    batchSize = 128
+    filteredPackages = [package for package in generatedList if not isPackageInTyposquattedDatabase(package[0]) and not isPackageInNotCreatedDatabase(package[0])]
+
+    print(f"Total packages to check: {len(filteredPackages)}")
+    print(f"Total Batches: {(len(filteredPackages) + batchSize - 1) // batchSize}")
+
+    for i in range(0, len(filteredPackages), batchSize):
+        batch = filteredPackages[i:i+batchSize]
+        typosquattedNames = [item[0] for item in batch]
+        results = checkBulkPackageExists(typosquattedNames)
+
+        existingPackages = [name for name in typosquattedNames if results.get(name)]
+
+        weeklyData = {}
+        monthlyData = {}
+        lastUpdateData = {}
+        typosquattedCount = 0
+        notCreatedCount = 0
+
+        if existingPackages:
+            batchString = ",".join(existingPackages)
+            weeklyData = getBatchWeeklyDownloads(batchString)
+            monthlyData = getBatchMonthlyDownloads(batchString)
+            lastUpdateData = getBatchLastUpdate(existingPackages)
+
+        for modifiedName, originalName, message in batch:
+            if results.get(modifiedName, False):
+                weeklyDownloads = weeklyData.get(modifiedName, {}).get("downloads") if modifiedName in weeklyData else None
+                monthlyDownloads = monthlyData.get(modifiedName, {}).get("downloads") if modifiedName in monthlyData else None
+                lastUpdate = lastUpdateData.get(modifiedName)
+                addPackageToTyposqauttedDatabase(modifiedName, originalName, weeklyDownloads, monthlyDownloads, lastUpdate, message)
+                typosquattedCount += 1
+                redText(f"Added {modifiedName} to typosquatted database, detected via {message}")
+            else:
+                addPackageToNotCreatedDatabase(modifiedName)
+                notCreatedCount += 1
+        print("-----------------------------------------")
+        greenText(f"Not created added: {notCreatedCount}")
+        redText(f"Typosquatted added: {typosquattedCount}")
+        print("-----------------------------------------")
+
+        time.sleep(0.5)
+
 def placeholder(modifiedName : str, packageName : str, message : str):
     if not isPackageInTyposquattedDatabase(modifiedName) and not isPackageInNotCreatedDatabase(modifiedName):
         print(f"Checking {modifiedName}...")
@@ -89,25 +144,29 @@ def placeholder(modifiedName : str, packageName : str, message : str):
             addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, message)
             redText(f"Added {modifiedName} to typosquatted database, detected via {message}")
         else:
-            connect = sqlite3.connect("database/notCreated.db")
-            cursor = connect.cursor()
-            cursor.execute('''INSERT OR IGNORE INTO notCreated (packageName) VALUES (?)''', (modifiedName,))
-            connect.commit()
-            connect.close()
+            addPackageToNotCreatedDatabase(modifiedName)
     else:
         greenText(f"{modifiedName} already in a database, skipping check.")
 
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
-    modifiedName = packageName + "s"
-    placeholder(modifiedName, packageName, "Levenshtein distance - added 's'")
-    modifiedName = packageName + packageName[-1]
-    placeholder(modifiedName, packageName, "Levenshtein distance - duplicated last character")
+    generated = []
+    generated.append((packageName + "s", packageName, "Levenshtein distance - added 's'"))
+    generated.append((packageName + packageName[-1], packageName, "Levenshtein distance - duplicated last character"))
 
+    for i in range(len(packageName)):
+        modifiedName = packageName[:i] + packageName[i+1:]
+        generated.append((modifiedName, packageName, f"Levenshtein distance - removed character at position {i}"))
+    
+    for i in range(len(packageName) - 1):
+        modifiedName = packageName[:i] + packageName[i+1] + packageName[i] + packageName[i+2:]
+        generated.append((modifiedName, packageName, f"Levenshtein distance - swapped characters at positions {i} and {i+1}"))
 
+    return generated
 
 # Check 2: Homograph attacks
 def homographCheck(packageName : str):
+    generated = []
     HOMOGRAPH_MAP = {
         "a": ["а \u0430", "ɑ \u0251", "à \u00E0", "á \u00E1", "â \u00E2", "ä \u00E4", "ã \u00E3"],
         "b": ["Ь \u042C", "Ƅ \u0184", "ƅ \u0185", "Ь \u044C"],
@@ -124,7 +183,7 @@ def homographCheck(packageName : str):
         "i": ["ӏ \u04CF", "ı \u0131", "İ \u0130", "¡ \u00A1", "l \u006C", "1 \u0031"],
         "j": ["ј \u0458"],
         "k": ["κ \u03BA", "к \u043A"],
-        "l": ["Ɩ \u0196", "ӏ \u04CF", "ⅼ \u217C", "Ι \u0399", "l \u006C"],
+        "l": ["Ɩ \u0196", "ӏ \u04CF", "ⅼ \u217C", "Ι \u0399"],
 
         "m": ["м \u043C"],
         "n": ["ո \u0576", "п \u043F"],
@@ -169,17 +228,16 @@ def homographCheck(packageName : str):
             for homograph in HOMOGRAPH_MAP[letter]:
                 homograph_stripped = homograph.split(" ")[1] # gets the actual homographic character
                 modifiedName = packageName.replace(letter,homograph_stripped)
-                placeholder(modifiedName, packageName, f"Homograph attack - replaced {letter} with {homograph_stripped}")
-                
+                generated.append((modifiedName, packageName, f"Homograph attack - replaced {letter} with {homograph_stripped}"))
+    return generated
 
 
 # Check 3: Combosquatting attacks
 def combosquattingCheck(packageName : str):
+    generated = []
     prefixes = [
     "node-", "js-", "ts-", "ng-", "react-", "vue-", "next-", "express-", "cli-", "utils-", "lib-",
-    "crypto-", "secure-", "safe-", "auth-", "jwt-",
-    "@types-", "@angular-", "@aws-", "@firebase-", "@google-", "@amazn-", "@goog1e-", "@microsof-",
-    "npmjs-", "github-"
+    "crypto-", "secure-", "safe-", "auth-", "jwt-", "npmjs-", "github-"
     ]
 
     suffixes = [
@@ -189,24 +247,22 @@ def combosquattingCheck(packageName : str):
     ]
 
     for prefix in prefixes:
-        modifiedName = prefix + packageName
-        placeholder(modifiedName, packageName, f"Combosquatting - added prefix {prefix}")
+        generated.append((prefix + packageName, packageName, f"Combosquatting - added prefix {prefix}"))
 
    
     for suffix in suffixes:
-        modifiedName = packageName + suffix
-        placeholder(modifiedName, packageName, f"Combosquatting - added suffix {suffix}")
+        generated.append((packageName + suffix, packageName, f"Combosquatting - added suffix {suffix}"))
+    
+    return generated
 
 # Check 4: Hyphen/underscore manipulation 
 def hyphenUnderscoreCheck(packageName : str):
+    generated = []
     if "-" in packageName:
-        modifiedName = packageName.replace("-", "_")
-        placeholder(modifiedName, packageName, f"Hyphen/underscore manipulation")
+        generated.append((packageName.replace("-", "_"), packageName, f"Hyphen/underscore manipulation"))
     elif "_" in packageName:
-        modifiedName = packageName.replace("_", "-")
-        placeholder(modifiedName, packageName, f"Hyphen/underscore manipulation")
-    else:
-        return
+        generated.append((packageName.replace("_", "-"), packageName, f"Hyphen/underscore manipulation"))
+    return generated
 
 def redText(text):
     print(f"\033[31m{text}\033[0m")
@@ -216,3 +272,5 @@ def greenText(text):
 
 if __name__ == "__main__":
     packageNamesFromDatabase()
+
+

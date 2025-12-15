@@ -23,12 +23,14 @@ def main():
     nonScopedPackages = [pkg for pkg in packagesToAdd if not pkg.startswith('@')]
     scopedPackages = [pkg for pkg in packagesToAdd if pkg.startswith('@')]
 
-    maxPackageSize = 100
+    maxPackageSize = 128
 
     for i in range(0, len(nonScopedPackages), maxPackageSize):
         batch = nonScopedPackages[i: i + maxPackageSize]
         batchString = ",".join(batch)
+        print("-----------------------------------------")
         print(f"Processing {i} to {i + len(batch)} out of {len(nonScopedPackages)} packages")
+        print("-----------------------------------------")
         weeklyData = getBatchWeeklyDownloads(batchString)
         monthlyData = getBatchMonthlyDownloads(batchString)
         lastUpdateData = getBatchLastUpdate(batch)

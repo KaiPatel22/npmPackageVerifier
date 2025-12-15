@@ -3,10 +3,6 @@ import sqlite3
 from npmCalls import checkPackageExists, checkBulkPackageExists, getBatchWeeklyDownloads, getBatchMonthlyDownloads, getBatchLastUpdate
 import time 
 
-def typosquattingDummyFunction():
-    print("dummy")
-
-
 def createTyposquattingDatabase():
     connect = sqlite3.connect("database/typosquatted.db")
     cursor = connect.cursor()
@@ -274,5 +270,3 @@ def greenText(text):
 
 if __name__ == "__main__":
     packageNamesFromDatabase()
-
-

@@ -1,5 +1,39 @@
 import requests
 from datetime import datetime
+import time
+
+# def sleepTime(response, defaultSleep = 10.0):
+#     try:
+#         retryTime = response.headers.get("Retry-After")
+#         timeVal = float(retryTime) if retryTime is not None else 0.0
+#         if timeVal <= 0:
+#             timeVal = float(defaultSleep)
+#             print(f"SLEEPING for {timeVal} due to rate limiting")
+#             time.sleep(float(timeVal)) 
+#         else:
+#             time.sleep(float(timeVal))
+#             print(f"SLEEPING for {timeVal} seconds due to rate limiting")
+#     except Exception as e:
+#         time.sleep(float(defaultSleep))
+#         print(f"sleepTime: Error is {e}, sleeping for default {defaultSleep} seconds")
+
+def dataProccess(url: str, retries: int = 3, delay: float = 15.0):
+    attempt = 0
+    while attempt < retries:
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 429:
+                print(f"SLEEPING due to rate limiting for URL: {url}")
+                time.sleep(10.0)
+            else:
+                print(f"retryProcess: Received status code {response.status_code} for URL: {url}")
+        except Exception as e:
+            print(f"retryProcess: Error is {e} on attempt {attempt + 1} for URL: {url}")
+        attempt += 1
+        time.sleep(delay)
+    return None
 
 def checkPackageExists(packageName : str):
     try:
@@ -24,10 +58,18 @@ def checkBulkPackageExists(packageNames : list): # Output from the fucntion is a
         batchString = ",".join(packageNames)
         url = f"https://api.npmjs.org/downloads/point/last-week/{batchString}"
         response = requests.get(url)
+
+        if response.status_code != 200:
+            if response.status_code == 429:
+                print(f"SLEEPING due to rate limiting for URL: {url}")
+                time.sleep(10.0)
+            return {}
+    
         data = response.json()
+
         for packageName in packageNames:
             pkg_data = data.get(packageName)
-            results[packageName] = (pkg_data is not None and isinstance(pkg_data, dict))
+            results[packageName] = (isinstance(pkg_data, dict) and "downloads" in pkg_data and isinstance(pkg_data.get("downloads"), int))
 
         return results
     except Exception as e:
@@ -36,9 +78,10 @@ def checkBulkPackageExists(packageNames : list): # Output from the fucntion is a
 
 def getWeeklyDownloads(packageName : str):
     try:
-        url = f" https://api.npmjs.org/downloads/point/last-week/{packageName}"
+        url = f"https://api.npmjs.org/downloads/point/last-week/{packageName}"
         response = requests.get(url)
-        data = response.json()
+
+        data = dataProccess(url)
         return data.get("downloads")
     except Exception as e:
         print(f"getWeeklyDownloads: Error is {e}")
@@ -46,9 +89,9 @@ def getWeeklyDownloads(packageName : str):
     
 def getMonthlyDownloads(packageName : str):
     try:
-        url = f" https://api.npmjs.org/downloads/point/last-month/{packageName}"
+        url = f"https://api.npmjs.org/downloads/point/last-month/{packageName}"
         response = requests.get(url)
-        data = response.json()
+        data = dataProccess(url)
         downloads = data.get("downloads")
         return downloads
     except Exception as e:
@@ -71,8 +114,21 @@ def getBatchWeeklyDownloads(batchString: str):
     try:
         url = f"https://api.npmjs.org/downloads/point/last-week/{batchString}"
         response = requests.get(url)
+
+        if response.status_code != 200:
+            if response.status_code == 429:
+                print(f"SLEEPING due to rate limiting for URL: {url}")
+                time.sleep(10.0)
+            return {}
+
         data = response.json()
-        return {pkg: data[pkg] for pkg in data if pkg != "start" and pkg != "end"}
+        out = {}
+        for pkg, payload in data.items():
+            if pkg in ("start", "end"):
+                continue
+            if isinstance(payload, dict) and isinstance(payload.get("downloads"), int):
+                out[pkg] = payload
+        return out
     except Exception as e:
         print(f"getBatchWeeklyDownloads: Error is {e}")
         return {}
@@ -81,8 +137,21 @@ def getBatchMonthlyDownloads(batchString: str):
     try:
         url = f"https://api.npmjs.org/downloads/point/last-month/{batchString}"
         response = requests.get(url)
+
+        if response.status_code != 200:
+            if response.status_code == 429:
+                print(f"SLEEPING due to rate limiting for URL: {url}")
+                time.sleep(10.0)
+            return {}
+
         data = response.json()
-        return {pkg: data[pkg] for pkg in data if pkg != "start" and pkg != "end"}
+        out = {}
+        for pkg, payload in data.items():
+            if pkg in ("start", "end"):
+                continue
+            if isinstance(payload, dict) and isinstance(payload.get("downloads"), int):
+                out[pkg] = payload
+        return out
     except Exception as e:
         print(f"getBatchMonthlyDownloads: Error is {e}")
         return {}

@@ -1,6 +1,6 @@
 import Levenshtein
 import sqlite3
-from npmCalls import checkPackageExists, checkBulkPackageExists, getBatchWeeklyDownloads, getBatchMonthlyDownloads, getBatchLastUpdate
+from npmCalls import checkPackageExists, checkBulkPackageExists, getBatchWeeklyDownloads, getBatchMonthlyDownloads, getBatchLastUpdate, getWeeklyDownloads, getMonthlyDownloads
 import time 
 
 def createTyposquattingDatabase():
@@ -90,14 +90,22 @@ def isPackageInNotCreatedDatabase(packageName: str) -> bool:
 def processBatches(generatedList : list):
     batchSize = 128
     filteredPackages = [package for package in generatedList if not isPackageInTyposquattedDatabase(package[0]) and not isPackageInNotCreatedDatabase(package[0])]
+    totalPackages = len(filteredPackages)
+    totalBatches = (totalPackages + batchSize - 1) // batchSize
+    print(f"Total packages to check: {totalPackages}")
+    print(f"Total Batches: {totalBatches}")
 
-    print(f"Total packages to check: {len(filteredPackages)}")
-    print(f"Total Batches: {(len(filteredPackages) + batchSize - 1) // batchSize}")
+    reservedNames = {"start", "end", "package", "downloads"}
 
-    for i in range(0, len(filteredPackages), batchSize):
+    for i in range(0, totalPackages, batchSize):
+        batchNumber = (i // batchSize) + 1
         batch = filteredPackages[i:i+batchSize]
         typosquattedNames = [item[0] for item in batch]
         results = checkBulkPackageExists(typosquattedNames)
+
+        if results == {}:
+            print("Status code not 200, skipping...")
+            continue
 
         existingPackages = [name for name in typosquattedNames if results.get(name)]
 
@@ -108,57 +116,145 @@ def processBatches(generatedList : list):
         notCreatedCount = 0
 
         if existingPackages:
-            batchString = ",".join(existingPackages)
+            batchable = [name for name in existingPackages if name not in reservedNames]
+            batchString = ",".join(batchable)
             weeklyData = getBatchWeeklyDownloads(batchString)
             monthlyData = getBatchMonthlyDownloads(batchString)
+        
+            for reserved in existingPackages:
+                if reserved in reservedNames:
+                    reservedWeeklyDownloads = getWeeklyDownloads(reserved)
+                    reservedMonthlyDownloads = getMonthlyDownloads(reserved)
+                    if isinstance(reservedWeeklyDownloads, int) and isinstance(reservedMonthlyDownloads, int):
+                        weeklyData[reserved] = {"downloads": reservedWeeklyDownloads}
+                        monthlyData[reserved] = {"downloads": reservedMonthlyDownloads}
+            
             lastUpdateData = getBatchLastUpdate(existingPackages)
 
         for modifiedName, originalName, message in batch:
             if results.get(modifiedName, False):
-                weeklyDownloads = weeklyData.get(modifiedName, {}).get("downloads") if modifiedName in weeklyData else None
-                monthlyDownloads = monthlyData.get(modifiedName, {}).get("downloads") if modifiedName in monthlyData else None
+                weeklyPayload = weeklyData.get(modifiedName)
+                monthlyPayload = monthlyData.get(modifiedName)
+                weeklyDownloads = weeklyPayload.get("downloads") if isinstance(weeklyPayload, dict) else None
+                monthlyDownloads = monthlyPayload.get("downloads") if isinstance(monthlyPayload, dict) else None
                 lastUpdate = lastUpdateData.get(modifiedName)
+
+                # if weeklyDownloads is None: # Specific hardcoding if the download data is missing - Hashed this out due to bringing up rate liiting issues too quickly
+                #     print(f"Weekly downloads missing for {modifiedName}, fetching specifically...")
+                #     specificWeeklyDownloads = getWeeklyDownloads(modifiedName)
+                #     if isinstance(specificWeeklyDownloads, int):
+                #         weeklyDownloads = specificWeeklyDownloads
+                # if monthlyDownloads is None:
+                #     print(f"Monthly downloads missing for {modifiedName}, fetching specifically...")
+                #     specificMonthlyDownloads = getMonthlyDownloads(modifiedName)
+                #     if isinstance(specificMonthlyDownloads, int):
+                #         monthlyDownloads = specificMonthlyDownloads
+
+                if weeklyDownloads is None or monthlyDownloads is None or lastUpdate is None:
+                    print(f"Package missing is {modifiedName}")
+                    print(f"Weekly payload: {weeklyPayload}, Monthly payload: {monthlyPayload}, Last update data: {lastUpdateData}")
+                    continue
                 addPackageToTyposqauttedDatabase(modifiedName, originalName, weeklyDownloads, monthlyDownloads, lastUpdate, message)
                 typosquattedCount += 1
                 redText(f"Added {modifiedName} to typosquatted database, detected via {message}")
             else:
                 addPackageToNotCreatedDatabase(modifiedName)
                 notCreatedCount += 1
+        
+        processedPackages = min(i + len(batch), totalPackages)
+
         print("-----------------------------------------")
         greenText(f"Not created added: {notCreatedCount}")
         redText(f"Typosquatted added: {typosquattedCount}")
+        blueText(f"Batch {batchNumber}/{totalBatches} processed.")
+        blueText(f"Packages {processedPackages}/{totalPackages} processed.")
         print("-----------------------------------------")
 
         time.sleep(0.5)
 
-def placeholder(modifiedName : str, packageName : str, message : str):
-    if not isPackageInTyposquattedDatabase(modifiedName) and not isPackageInNotCreatedDatabase(modifiedName):
-        print(f"Checking {modifiedName}...")
-        call = checkPackageExists(modifiedName)
-        if call is not False:
-            weeklyDownloads, monthlyDownloads, lastUpdate = call
-            addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, message)
-            redText(f"Added {modifiedName} to typosquatted database, detected via {message}")
-        else:
-            addPackageToNotCreatedDatabase(modifiedName)
-    else:
-        greenText(f"{modifiedName} already in a database, skipping check.")
+# def placeholder(modifiedName : str, packageName : str, message : str):
+#     if not isPackageInTyposquattedDatabase(modifiedName) and not isPackageInNotCreatedDatabase(modifiedName):
+#         print(f"Checking {modifiedName}...")
+#         call = checkPackageExists(modifiedName)
+#         if call is not False:
+#             weeklyDownloads, monthlyDownloads, lastUpdate = call
+#             addPackageToTyposqauttedDatabase(modifiedName, packageName, weeklyDownloads, monthlyDownloads, lastUpdate, message)
+#             redText(f"Added {modifiedName} to typosquatted database, detected via {message}")
+#         else:
+#             addPackageToNotCreatedDatabase(modifiedName)
+#     else:
+#         greenText(f"{modifiedName} already in a database, skipping check.")
 
 # Check 1: Levenstein distance 
 def levenshteinCheck(packageName: str):
     generated = []
-    generated.append((packageName + "s", packageName, "Levenshtein distance - added 's'"))
-    generated.append((packageName + packageName[-1], packageName, "Levenshtein distance - duplicated last character"))
+
+    KEYBOARD_NEIGHBORS = {
+        "q": ["w", "a", "s", "1", "2"], 
+        "w": ["1", "2", "3", "q", "e", "a", "s", "d"],
+        "e": ["2", "3", "4", "w", "r", "s", "d", "f"], 
+        "r": ["3", "4", "5", "e", "t", "d", "f", "g"],
+        "t": ["4", "5", "6", "r", "y", "f", "g", "h"], 
+        "y": ["5", "6", "7", "t", "u", "g", "h", "j"], 
+        "u": ["6", "7", "8", "y", "i", "h", "j", "k"], 
+        "i": ["7", "8", "9", "u", "o", "j", "k", "l"],
+        "o": ["8", "9", "0", "i", "p", "k", "l", ";"], 
+        "p": ["o", "l", ";", "'"],
+
+        "a": ["q", "w", "s", "z"], 
+        "s": ["w", "e", "a", "d", "z", "x"], 
+        "d": ["e", "r", "s", "f", "x", "c"],
+        "f": ["r", "t", "d", "g", "c", "v"],
+        "g": ["t", "y", "f", "h", "v", "b"], 
+        "h": ["y", "u", "g", "j", "b", "n"],
+        "j": ["u", "i", "h", "k", "n", "m"], 
+        "k": ["i", "o", "j", "l", "m"], 
+        "l": ["o", "p", "k"],
+
+        "z": ["a", "s", "x"], 
+        "x": ["z", "s", "d", "c"], 
+        "c": ["x", "d", "f", "v"], 
+        "v": ["c", "f", "g", "b"],
+        "b": ["v", "g", "h", "n"], 
+        "n": ["b", "h", "j", "m"], 
+        "m": ["n", "j", "k"],
+
+        "1": ["2", "q"], 
+        "2": ["1", "3", "w"], 
+        "3": ["2", "4", "e"], 
+        "4": ["3", "5", "r"], 
+        "5": ["4", "6", "t"],
+        "6": ["5", "7", "y"],
+        "7": ["6", "8", "u"], 
+        "8": ["7", "9", "i"], 
+        "9": ["8", "0", "o"], 
+        "0": ["9", "-", "p"],
+        "-": ["0", "=", "p"]
+    }
+
+
+    generated.append((packageName + "s", packageName, "Levenshtein distance - added 's'")) # Add an 's' at the end of the package name
+
+    for i in range(len(packageName)):
+        modifiedName = packageName[:i] + packageName[i] + packageName[i:]
+        generated.append((modifiedName, packageName, "Levenshtein distance - duplicated character")) # Duplicate each character one by one
 
     for i in range(len(packageName)):
         modifiedName = packageName[:i] + packageName[i+1:]
-        generated.append((modifiedName, packageName, f"Levenshtein distance - removed character at position {i}"))
+        generated.append((modifiedName, packageName, f"Levenshtein distance - Remove character")) # Remove each character one by one
     
     for i in range(len(packageName) - 1):
         if packageName[i] == packageName[i+1]:
             continue
         modifiedName = packageName[:i] + packageName[i+1] + packageName[i] + packageName[i+2:]
-        generated.append((modifiedName, packageName, f"Levenshtein distance - swapped characters at positions {i} and {i+1}"))
+        generated.append((modifiedName, packageName, f"Levenshtein distance - Swap adjacent characters")) # Swap adjacent characters
+
+    for i, char in enumerate(packageName):
+        neighbours = KEYBOARD_NEIGHBORS.get(char, [])
+        for neighbour in neighbours:
+            modifiedName = packageName[:i] + neighbour + packageName[i+1:]
+            if modifiedName != packageName:
+                generated.append((modifiedName, packageName, f"Levenshtein distance - Keyboard Proximity")) # Replace with keyboard neighbor
 
     return generated
 
@@ -267,6 +363,9 @@ def redText(text):
 
 def greenText(text):
     print(f"\033[32m{text}\033[0m")
+
+def blueText(text):
+    print(f"\033[94m{text}\033[0m")
 
 if __name__ == "__main__":
     packageNamesFromDatabase()

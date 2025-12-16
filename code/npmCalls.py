@@ -25,7 +25,7 @@ def dataProccess(url: str, retries: int = 3, delay: float = 15.0):
             if response.status_code == 200:
                 return response.json()
             elif response.status_code == 429:
-                print(f"SLEEPING due to rate limiting for URL: {url}")
+                yellowText(f"SLEEPING due to rate limiting for URL: {url}")
                 time.sleep(10.0)
             else:
                 print(f"retryProcess: Received status code {response.status_code} for URL: {url}")
@@ -61,7 +61,7 @@ def checkBulkPackageExists(packageNames : list): # Output from the fucntion is a
 
         if response.status_code != 200:
             if response.status_code == 429:
-                print(f"SLEEPING due to rate limiting for URL: {url}")
+                yellowText(f"SLEEPING due to rate limiting for URL: {url}")
                 time.sleep(10.0)
             return {}
     
@@ -117,7 +117,7 @@ def getBatchWeeklyDownloads(batchString: str):
 
         if response.status_code != 200:
             if response.status_code == 429:
-                print(f"SLEEPING due to rate limiting for URL: {url}")
+                yellowText(f"SLEEPING due to rate limiting for URL: {url}")
                 time.sleep(10.0)
             return {}
 
@@ -140,7 +140,7 @@ def getBatchMonthlyDownloads(batchString: str):
 
         if response.status_code != 200:
             if response.status_code == 429:
-                print(f"SLEEPING due to rate limiting for URL: {url}")
+                yellowText(f"SLEEPING due to rate limiting for URL: {url}")
                 time.sleep(10.0)
             return {}
 
@@ -173,3 +173,7 @@ def getBatchLastUpdate(packageNames: list):
     except Exception as e:
         print(f"getBatchLastUpdate: Error is {e}")
         return {}
+    
+
+def yellowText(text: str):
+    print(f"\033[93m{text}\033[0m")

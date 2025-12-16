@@ -151,8 +151,8 @@ def processBatches(generatedList : list):
                 #         monthlyDownloads = specificMonthlyDownloads
 
                 if weeklyDownloads is None or monthlyDownloads is None or lastUpdate is None:
-                    print(f"Package missing is {modifiedName}")
-                    print(f"Weekly payload: {weeklyPayload}, Monthly payload: {monthlyPayload}, Last update data: {lastUpdateData}")
+                    yellowText(f"Package missing is {modifiedName}")
+                    yellowText(f"Weekly payload: {weeklyPayload}, Monthly payload: {monthlyPayload}, Last update data: {lastUpdateData}")
                     continue
                 addPackageToTyposqauttedDatabase(modifiedName, originalName, weeklyDownloads, monthlyDownloads, lastUpdate, message)
                 typosquattedCount += 1
@@ -170,7 +170,7 @@ def processBatches(generatedList : list):
         blueText(f"Packages {processedPackages}/{totalPackages} processed.")
         print("-----------------------------------------")
 
-        time.sleep(0.5)
+        time.sleep(1)
 
 # def placeholder(modifiedName : str, packageName : str, message : str):
 #     if not isPackageInTyposquattedDatabase(modifiedName) and not isPackageInNotCreatedDatabase(modifiedName):
@@ -331,21 +331,23 @@ def combosquattingCheck(packageName : str):
     generated = []
     prefixes = [
     "node-", "js-", "ts-", "ng-", "react-", "vue-", "next-", "express-", "cli-", "utils-", "lib-",
-    "crypto-", "secure-", "safe-", "auth-", "jwt-", "npmjs-", "github-"
+    "crypto-", "secure-", "safe-", "auth-", "jwt-", "npmjs-", "github-", "aws-", "azure-", "gcp-",
+    "windows-", "mac-", "limux-", "docker-", "plugin-"
     ]
 
     suffixes = [
-    "-js", "-node", "-utils", "-helper", "-core", "-service", "-api", "-server", "-cli", "-module",
-    "-v2", "-v3", "-beta", "-dev", "-next", "-lite", "-min", "-pro", "-plus",
-    "-pkg", "-package", "-script", "-lib"
+    "-js", "-ts", "-node", "-utils", "-helper", "-core", "-service", "-api", "-server", "-cli", "-module",
+    "-v1", "-v2", "-v3", "-beta", "-dev", "-next", "-lite", "-min", "-pro", "-plus",
+    "-pkg", "-package", "-script", "-lib", "-wrapper", "-official", "-verified", "-secure",
+    "-aws", "-azure", "-gcp", "-windows", "-mac", "-linux", "-docker", "-plugin"
     ]
 
     for prefix in prefixes:
-        generated.append((prefix + packageName, packageName, f"Combosquatting - added prefix {prefix}"))
+        generated.append((prefix + packageName, packageName, f"Combosquatting - added prefix"))
 
    
     for suffix in suffixes:
-        generated.append((packageName + suffix, packageName, f"Combosquatting - added suffix {suffix}"))
+        generated.append((packageName + suffix, packageName, f"Combosquatting - added suffix"))
     
     return generated
 
@@ -366,6 +368,9 @@ def greenText(text):
 
 def blueText(text):
     print(f"\033[94m{text}\033[0m")
+
+def yellowText(text: str):
+    print(f"\033[93m{text}\033[0m")
 
 if __name__ == "__main__":
     packageNamesFromDatabase()

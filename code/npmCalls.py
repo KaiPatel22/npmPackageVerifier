@@ -2,21 +2,6 @@ import requests
 from datetime import datetime
 import time
 
-# def sleepTime(response, defaultSleep = 10.0):
-#     try:
-#         retryTime = response.headers.get("Retry-After")
-#         timeVal = float(retryTime) if retryTime is not None else 0.0
-#         if timeVal <= 0:
-#             timeVal = float(defaultSleep)
-#             print(f"SLEEPING for {timeVal} due to rate limiting")
-#             time.sleep(float(timeVal)) 
-#         else:
-#             time.sleep(float(timeVal))
-#             print(f"SLEEPING for {timeVal} seconds due to rate limiting")
-#     except Exception as e:
-#         time.sleep(float(defaultSleep))
-#         print(f"sleepTime: Error is {e}, sleeping for default {defaultSleep} seconds")
-
 def dataProccess(url: str, retries: int = 3, delay: float = 15.0):
     attempt = 0
     while attempt < retries:
@@ -174,6 +159,27 @@ def getBatchLastUpdate(packageNames: list):
         print(f"getBatchLastUpdate: Error is {e}")
         return {}
     
+def getWeeklyDownloadsBasic(packageName : str):
+    try:
+        url = f"https://api.npmjs.org/downloads/point/last-week/{packageName}"
+        response = requests.get(url)
+
+        data = response.json()
+        return data.get("downloads")
+    except Exception as e:
+        print(f"getWeeklyDownloads: Error is {e}")
+        return None
+    
+def getMonthlyDownloadsBasic(packageName : str):
+    try:
+        url = f"https://api.npmjs.org/downloads/point/last-month/{packageName}"
+        response = requests.get(url)
+        data = response.json()
+        downloads = data.get("downloads")
+        return downloads
+    except Exception as e:
+        print(f"getMonthlyDownloads: Error is {e}")
+        return None
 
 def yellowText(text: str):
     print(f"\033[93m{text}\033[0m")

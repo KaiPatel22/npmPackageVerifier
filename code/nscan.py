@@ -72,6 +72,22 @@ def calculateIndexScoreForTyposquatting(originalPackage: str, weeklyDownloads: i
     else:
         print("No index score added for download difference due to high weekly and monthly download counts")
 
+    typosquattingUpdate = datetime.strptime(lastUpdate, "%d-%m-%Y %H:%M:%S")
+    originalUpdate = datetime.strptime(originalLastUpdate, "%d-%m-%Y %H:%M:%S")
+    behind = originalUpdate - typosquattingUpdate
+
+    if (behind >= timedelta(days=365*3)):
+        indexScore += 5
+        print("+5 index score for last update over 3 years ago from original package update")
+    elif (behind >= timedelta(days=365*2)):
+        indexScore += 3
+        print("+3 index score for last update over 2 years ago from original package update")
+    elif (behind >= timedelta(days=365*1)):
+        indexScore += 2
+        print("+2 index score for last update over 1 year ago from original package update")
+    else:
+        print("No index score added for last update recency from original package update")
+
     return indexScore
 
 
@@ -87,40 +103,56 @@ def calculateSuspiciousIndexScore(weeklyDownloads: int, monthlyDownloads: int, l
     downloadLowerBound3 = (weeklyDownloads * 4) * 0.3
     downloadUpperBound3 = (weeklyDownloads * 4) * 1.7
 
-    if (monthlyDownloads < downloadLowerBound1) or (monthlyDownloads > downloadUpperBound1):
+    if (monthlyDownloads < downloadLowerBound1) or (monthlyDownloads > downloadUpperBound1) or (weeklyDownloads < 100 and monthlyDownloads < 1000):
         indexScore += 2
-    elif (monthlyDownloads < downloadLowerBound2) or (monthlyDownloads > downloadUpperBound2):
-        indexScore += 3
-    elif (monthlyDownloads < downloadLowerBound3) or (monthlyDownloads > downloadUpperBound3):
+        print(f"+2 index score for monthly downloads outside 30% range of weekly downloads multiplied by 4")
+    elif (monthlyDownloads < downloadLowerBound2) or (monthlyDownloads > downloadUpperBound2) or (weeklyDownloads < 1000 and monthlyDownloads < 10000):
         indexScore += 5
+        print(f"+5 index score for monthly downloads outside 50% range of weekly downloads multiplied by 4")
+    elif (monthlyDownloads < downloadLowerBound3) or (monthlyDownloads > downloadUpperBound3) or (weeklyDownloads < 10000 and monthlyDownloads < 10000):
+        indexScore += 8
+        print(f"+8 index score for monthly downloads outside 70% range of weekly downloads multiplied by 4")
+    else:
+        print("No index score added for download consistency between weekly and monthly downloads")
 
-    def isPackageOutdated6months(lastUpdate : str):
-        lastUpdateDate = datetime.strptime(lastUpdate, "%d-%m-%Y %H:%M:%S")
-        sixMonthsAgo = datetime.now() - timedelta(days=6 * 30)
-        return lastUpdateDate < sixMonthsAgo
-    
     def isPackageOutdated1year(lastUpdate : str):
         lastUpdateDate = datetime.strptime(lastUpdate, "%d-%m-%Y %H:%M:%S")
-        oneYearAgo = datetime.now() - timedelta(days=12 * 30)
-        return lastUpdateDate < oneYearAgo
+        sixMonthsAgo = datetime.now() - timedelta(days=12 * 30)
+        return lastUpdateDate < sixMonthsAgo
     
     def isPackageOutdated2years(lastUpdate : str):
         lastUpdateDate = datetime.strptime(lastUpdate, "%d-%m-%Y %H:%M:%S")
-        twoYearsAgo = datetime.now() - timedelta(days=24 * 30)
+        oneYearAgo = datetime.now() - timedelta(days=24 * 30)
+        return lastUpdateDate < oneYearAgo
+    
+    def isPackageOutdated3years(lastUpdate : str):
+        lastUpdateDate = datetime.strptime(lastUpdate, "%d-%m-%Y %H:%M:%S")
+        twoYearsAgo = datetime.now() - timedelta(days=36 * 30)
         return lastUpdateDate < twoYearsAgo
     
-    if (isPackageOutdated2years(lastUpdate)):
-        indexScore += 4
-    elif (isPackageOutdated1year(lastUpdate)):
+    def isPackageOutdated4years(lastUpdate : str):
+        lastUpdateDate = datetime.strptime(lastUpdate, "%d-%m-%Y %H:%M:%S")
+        threeYearsAgo = datetime.now() - timedelta(days=48 * 30)
+        return lastUpdateDate < threeYearsAgo
+
+    if (isPackageOutdated4years(lastUpdate)):
+        indexScore += 7
+        print("+7 index score for last update over 3 years ago")
+    elif (isPackageOutdated3years(lastUpdate)):
+        indexScore += 5
+        print("+5 index score for last update over 2 years ago")
+    elif (isPackageOutdated2years(lastUpdate)):
         indexScore += 3
-    elif (isPackageOutdated6months(lastUpdate)):
-        indexScore += 2
+        print("+3 index score for last update over 1 year ago")
+    elif (isPackageOutdated1year(lastUpdate)):
+        indexScore += 1
+        print("+1 index score for last update over 6 months ago")
 
     return indexScore
 
 
 def main():
-    if len(sys.argv) < 3 and (sys.argv[1] != "install" or sys.argv[1] != "update"):
+    if len(sys.argv) < 3 or (sys.argv[1] != "install" and sys.argv[1] != "update"):
         print("Usage: nscan install <package> || nscan update <package>")
         sys.exit(1)
 
@@ -138,7 +170,7 @@ def main():
             sys.exit(1)
         lastUpdate = getLastUpdate(packageName)
         suspiciousIndexScore = calculateSuspiciousIndexScore(weeklyDownloads, monthlyDownloads, lastUpdate)
-        redText(f"Suspicious index score for {packageName}: {suspiciousIndexScore}")
+        redText(f"Suspicious index score for {packageName}: {suspiciousIndexScore} / 15")
         overallIndexScore += suspiciousIndexScore
     elif checkInTyposquattedDB(packageName):
         print(f"Fetching {packageName} information from typosquatted database...")
@@ -149,7 +181,7 @@ def main():
         lastUpdate = packageInfo[5]
         message = packageInfo[6]
         typosquattingIndexScore = calculateIndexScoreForTyposquatting(originalPackage, weeklyDownloads, monthlyDownloads, lastUpdate, message)
-        redText(f"Typoquatting index score for {packageName}: {typosquattingIndexScore}")
+        redText(f"Typoquatting index score for {packageName}: {typosquattingIndexScore} / 15")
         overallIndexScore += typosquattingIndexScore
     elif checkInLegitimateDB(packageName):
         print(f"Fetching {packageName} information from legitimate database...")
@@ -164,12 +196,12 @@ def main():
     print(f"Weekly Downloads: {weeklyDownloads}")
     print(f"Monthly Downloads: {monthlyDownloads}")
     print(f"Last Update: {lastUpdate}")
-    if overallIndexScore >= 7:
-        redText(f"Overall Index Score: {overallIndexScore}")
-    elif overallIndexScore >=4 and overallIndexScore < 7:
-        yellowText(f"Overall Index Score: {overallIndexScore}")
+    if overallIndexScore >= 10:
+        redText(f"Overall Index Score: {overallIndexScore} / 15")
+    elif overallIndexScore >5 and overallIndexScore < 10:
+        yellowText(f"Overall Index Score: {overallIndexScore} / 15")
     else:
-        greenText(f"Overall Index Score: {overallIndexScore}")
+        greenText(f"Overall Index Score: {overallIndexScore} / 15")
     print(f"--------------------------------------------")
 
     if typeOfCommand == "install":

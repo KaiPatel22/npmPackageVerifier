@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import platform 
 from npmCalls import getWeeklyDownloads, getMonthlyDownloads, getLastUpdate, getWeeklyDownloadsBasic, getMonthlyDownloadsBasic
 import sqlite3
+from scanInstallScripts import ScriptScanner
 
 def checkInTyposquattedDB(packageName: str) -> int:
     connect = sqlite3.connect('database/typosquatted.db')
@@ -151,6 +152,12 @@ def calculateSuspiciousIndexScore(weeklyDownloads: int, monthlyDownloads: int, l
     return indexScore
 
 
+def scanInstallScripts(packageName:str):
+    scanner = ScriptScanner(packageName)
+    result = scanner.scanPackage()
+    print(f"Install Script Risk Score for {packageName}: {result['riskScore']}")
+
+
 def main():
     if len(sys.argv) < 3 or (sys.argv[1] != "install" and sys.argv[1] != "update"):
         print("Usage: nscan install <package> || nscan update <package>")
@@ -202,6 +209,8 @@ def main():
         yellowText(f"Overall Index Score: {overallIndexScore} / 15")
     else:
         greenText(f"Overall Index Score: {overallIndexScore} / 15")
+    
+    scanInstallScripts(packageName)
     print(f"--------------------------------------------")
 
     if typeOfCommand == "install":

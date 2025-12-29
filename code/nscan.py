@@ -155,7 +155,12 @@ def calculateSuspiciousIndexScore(weeklyDownloads: int, monthlyDownloads: int, l
 def scanInstallScripts(packageName:str):
     scanner = ScriptScanner(packageName)
     result = scanner.scanPackage()
-    print(f"Install Script Risk Score for {packageName}: {result['riskScore']}")
+    if result['riskScore'] < 2:
+        greenText(f"Install Script Risk Score for {packageName}: {result['riskScore']}")
+    elif result['riskScore'] < 4:
+        yellowText(f"Install Script Risk Score for {packageName}: {result['riskScore']}")
+    else:
+        redText(f"Install Script Risk Score for {packageName}: {result['riskScore']}")
 
 
 def main():
@@ -210,6 +215,7 @@ def main():
     else:
         greenText(f"Overall Index Score: {overallIndexScore} / 15")
     
+    print(f"Scanning installation scripts for {packageName}...")
     scanInstallScripts(packageName)
     print(f"--------------------------------------------")
 

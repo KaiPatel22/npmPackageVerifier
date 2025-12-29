@@ -205,7 +205,7 @@ def main():
     print(f"Last Update: {lastUpdate}")
     if overallIndexScore >= 10:
         redText(f"Overall Index Score: {overallIndexScore} / 15")
-    elif overallIndexScore >5 and overallIndexScore < 10:
+    elif overallIndexScore >= 5 and overallIndexScore < 10:
         yellowText(f"Overall Index Score: {overallIndexScore} / 15")
     else:
         greenText(f"Overall Index Score: {overallIndexScore} / 15")

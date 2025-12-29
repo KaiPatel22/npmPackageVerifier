@@ -154,6 +154,5 @@ class ScriptScanner:
             "findings": findings,
             "riskScore": riskScore,
         }
-                    
 
 

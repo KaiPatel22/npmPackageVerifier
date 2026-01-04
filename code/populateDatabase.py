@@ -13,6 +13,12 @@ def isPackageInLegimateDatabase(packageName: str) -> bool:
     connect.close()
     return count > 0
 
+def removeLowDownloads(minWeekly: int = 10000, minMonthly: int = 100000):
+    connect = sqlite3.connect("database/legitimate.db")
+    cursor = connect.cursor()
+    cursor.execute('''DELETE FROM legitimate WHERE weeklyDownloads < ? OR monthlyDownloads < ?''', (minWeekly, minMonthly))
+    connect.commit()
+    connect.close()
 
 def main():
     setupDatabase()
@@ -40,11 +46,12 @@ def main():
             monthlyDownloads = monthlyData.get(packageName, {}).get("downloads") if packageName in monthlyData else None
             lastUpdate = lastUpdateData.get(packageName)
             
-            if weeklyDownloads and monthlyDownloads and lastUpdate:
+            if weeklyDownloads and monthlyDownloads and lastUpdate and weeklyDownloads <= 10000 and monthlyDownloads <= 100000:
                 addPackageToDatabase(packageName, weeklyDownloads, monthlyDownloads, lastUpdate)
                 print(f"Added package: {packageName}")
             else:
                 print(f"Failed to retrieve data for package: {packageName}")
+    removeLowDownloads() # fallback pruning case for low downloads
 
     # print(f"Processing {len(scopedPackages)} scoped packages") SCOPED PACKAGES CAUSE RATE LIMITING ISSUES, CANT CHAIN THEM IN URL
     # for scopedPackageName in scopedPackages:

@@ -164,6 +164,7 @@ def scanInstallScripts(packageName:str):
 
 
 def main():
+    state = ""
     if len(sys.argv) < 3 or (sys.argv[1] != "install" and sys.argv[1] != "update"):
         print("Usage: nscan install <package> || nscan update <package>")
         sys.exit(1)
@@ -210,40 +211,45 @@ def main():
     print(f"Last Update: {lastUpdate}")
     if overallIndexScore >= 10:
         redText(f"Overall Index Score: {overallIndexScore} / 15")
+        state = "malicious"
     elif overallIndexScore >= 5 and overallIndexScore < 10:
         yellowText(f"Overall Index Score: {overallIndexScore} / 15")
+        state = "suspicious"
     else:
         greenText(f"Overall Index Score: {overallIndexScore} / 15")
+        state = "legitimate"
     
     print(f"Scanning installation scripts for {packageName}...")
     scanInstallScripts(packageName)
     print(f"--------------------------------------------")
 
-    if typeOfCommand == "install":
+    print(state)
 
-        continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
-        while continueInstallation != "y" and continueInstallation != "n":
-            continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
+    # if typeOfCommand == "install":
 
-        if continueInstallation == "y":
-            npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
-            installation = subprocess.run([npm_command, "install", packageName])
-            sys.exit(installation.returncode)
-        elif continueInstallation == "n":
-            print(f"Aborting installation of {packageName}")
-            sys.exit()
-    else:
-        continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
-        while continueUpdate != "y" and continueUpdate != "n":
-            continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
+    #     continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
+    #     while continueInstallation != "y" and continueInstallation != "n":
+    #         continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
 
-        if continueUpdate == "y":
-            npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
-            update = subprocess.run([npm_command, typeOfCommand, packageName])
-            sys.exit(update.returncode)
-        elif continueUpdate == "n":
-            print(f"Aborting update of {packageName}")
-            sys.exit()
+    #     if continueInstallation == "y":
+    #         npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
+    #         installation = subprocess.run([npm_command, "install", packageName])
+    #         sys.exit(installation.returncode)
+    #     elif continueInstallation == "n":
+    #         print(f"Aborting installation of {packageName}")
+    #         sys.exit()
+    # else:
+    #     continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
+    #     while continueUpdate != "y" and continueUpdate != "n":
+    #         continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
+
+    #     if continueUpdate == "y":
+    #         npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
+    #         update = subprocess.run([npm_command, typeOfCommand, packageName])
+    #         sys.exit(update.returncode)
+    #     elif continueUpdate == "n":
+    #         print(f"Aborting update of {packageName}")
+    #         sys.exit()
 
     
 def redText(text):

@@ -301,6 +301,10 @@ finalArray = ["express","react","vue","angular","lodash","moment","axios","chalk
     "node-uuid", "js-uuid", "react-uuid", "vue-uuid", "uuid-js", "node-which", 
     "while-module", "next-ws", "express-ws"]
 
+
+packageState = ["legitimate"] * 154 + ["malicious"] * 157 + ["suspicious"] * 48
+
+
 def package(packageName: str) -> bool:
     connect = sqlite3.connect("database/legitimate.db")
     cursor = connect.cursor()

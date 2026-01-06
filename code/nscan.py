@@ -148,6 +148,8 @@ def calculateSuspiciousIndexScore(weeklyDownloads: int, monthlyDownloads: int, l
     elif (isPackageOutdated1year(lastUpdate)):
         indexScore += 1
         print("+1 index score for last update over 6 months ago")
+    else:
+        print("No index score added for last update recency")
 
     return indexScore
 
@@ -161,6 +163,8 @@ def scanInstallScripts(packageName:str):
         yellowText(f"Install Script Risk Score for {packageName}: {result['riskScore']}")
     else:
         redText(f"Install Script Risk Score for {packageName}: {result['riskScore']}")
+
+    return result['riskScore']
 
 
 def main():
@@ -202,25 +206,28 @@ def main():
         weeklyDownloads = packageInfo[2]
         monthlyDownloads = packageInfo[3]
         lastUpdate = packageInfo[4]
-        greenText(f"{packageName} found in legitimate database, no index score added.")
+        greenText(f"{packageName} found in legitimate database.")
+        suspiciousIndexScore = calculateSuspiciousIndexScore(weeklyDownloads, monthlyDownloads, lastUpdate)
+        overallIndexScore += suspiciousIndexScore
+
+    print(f"Scanning installation scripts for {packageName}...")
+    overallIndexScore += scanInstallScripts(packageName)
 
     print(f"--------------------------------------------")
     print(f"Package Summary for {packageName}")
     print(f"Weekly Downloads: {weeklyDownloads}")
     print(f"Monthly Downloads: {monthlyDownloads}")
     print(f"Last Update: {lastUpdate}")
-    if overallIndexScore >= 10:
-        redText(f"Overall Index Score: {overallIndexScore} / 15")
+    if overallIndexScore >= 13:
+        redText(f"Overall Index Score: {overallIndexScore} / 20")
         state = "malicious"
-    elif overallIndexScore >= 5 and overallIndexScore < 10:
-        yellowText(f"Overall Index Score: {overallIndexScore} / 15")
+    elif overallIndexScore >= 5 and overallIndexScore < 13:
+        yellowText(f"Overall Index Score: {overallIndexScore} / 20")
         state = "suspicious"
     else:
-        greenText(f"Overall Index Score: {overallIndexScore} / 15")
+        greenText(f"Overall Index Score: {overallIndexScore} / 20")
         state = "legitimate"
-    
-    print(f"Scanning installation scripts for {packageName}...")
-    scanInstallScripts(packageName)
+
     print(f"--------------------------------------------")
 
     print(state)

@@ -9,7 +9,7 @@ from typing import List, Dict
 
 @dataclass
 class ScriptInfo:
-    script_name: str
+    scriptName: str
     pattern: str
     description: str
     severity: int
@@ -126,12 +126,12 @@ class ScriptScanner:
     def scanScripts(self, scripts: Dict[str, str]) -> List[ScriptInfo]:
         findings = []
 
-        for script_name, script_cmd in scripts.items():
+        for scriptName, scriptCMD in scripts.items():
             for rule in self.rules:
-                if re.search(rule["pattern"], script_cmd, re.IGNORECASE):
+                if re.search(rule["pattern"], scriptCMD, re.IGNORECASE):
                     findings.append(
                         ScriptInfo(
-                            script_name=script_name,
+                            scriptName=scriptName,
                             pattern=rule["pattern"],
                             description=rule["description"],
                             severity=rule["severity"],
@@ -147,6 +147,16 @@ class ScriptScanner:
             findings = self.scanScripts(scripts)
         
         riskScore = sum(f.severity for f in findings)
+
+        if riskScore > 0:
+            print(f"Installation Scripts found for package {self.packageName}:")
+            for finding in findings:
+                print(
+                    f"- Script: {finding.scriptName}, pattern: {finding.pattern}, "
+                    f"description: {finding.description}, severity: {finding.severity}"
+                )
+        else:
+            print(f"No risky installation scripts found for package {self.packageName}.")
         
         return {
             "package": self.packageName,

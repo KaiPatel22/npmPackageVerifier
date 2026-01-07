@@ -142,9 +142,24 @@ class ScriptScanner:
     
     def scanPackage(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            self.installPackage(tmpdir)
-            scripts = self.extractScripts(tmpdir)
-            findings = self.scanScripts(scripts)
+            try:
+                self.installPackage(tmpdir)
+                scripts = self.extractScripts(tmpdir)
+                findings = self.scanScripts(scripts)
+            except subprocess.CalledProcessError as e: # if the script fails to install with "--ignore-scripts", we assume it is malicious
+                info = ScriptInfo(
+                            scriptName="install",
+                            pattern="npm install failure",
+                            description="Package failed to install without executing scripts",
+                            severity=5,
+                        )
+                print(f"Installation failed for package {self.packageName}, marking as risky.")
+                return {
+                    "package": self.packageName,
+                    "scriptsFound": [],
+                    "findings": [info],
+                    "riskScore": 5,
+                }
         
         riskScore = sum(f.severity for f in findings)
 

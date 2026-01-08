@@ -230,33 +230,33 @@ def main():
 
     print(f"--------------------------------------------")
 
-    print(state)
+    # print(state) Used for the evaluation script
 
-    # if typeOfCommand == "install":
+    if typeOfCommand == "install":
 
-    #     continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
-    #     while continueInstallation != "y" and continueInstallation != "n":
-    #         continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
+        continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
+        while continueInstallation != "y" and continueInstallation != "n":
+            continueInstallation = input("Are you sure you want to continue with the installation (y/n):").lower()
 
-    #     if continueInstallation == "y":
-    #         npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
-    #         installation = subprocess.run([npm_command, "install", packageName])
-    #         sys.exit(installation.returncode)
-    #     elif continueInstallation == "n":
-    #         print(f"Aborting installation of {packageName}")
-    #         sys.exit()
-    # else:
-    #     continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
-    #     while continueUpdate != "y" and continueUpdate != "n":
-    #         continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
+        if continueInstallation == "y":
+            npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
+            installation = subprocess.run([npm_command, "install", packageName])
+            sys.exit(installation.returncode)
+        elif continueInstallation == "n":
+            print(f"Aborting installation of {packageName}")
+            sys.exit()
+    else:
+        continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
+        while continueUpdate != "y" and continueUpdate != "n":
+            continueUpdate = input("Are you sure you want to continue with the update (y/n):").lower()
 
-    #     if continueUpdate == "y":
-    #         npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
-    #         update = subprocess.run([npm_command, typeOfCommand, packageName])
-    #         sys.exit(update.returncode)
-    #     elif continueUpdate == "n":
-    #         print(f"Aborting update of {packageName}")
-    #         sys.exit()
+        if continueUpdate == "y":
+            npm_command = "npm.cmd" if platform.system() == "Windows" else "npm"
+            update = subprocess.run([npm_command, typeOfCommand, packageName])
+            sys.exit(update.returncode)
+        elif continueUpdate == "n":
+            print(f"Aborting update of {packageName}")
+            sys.exit()
 
     
 def redText(text):

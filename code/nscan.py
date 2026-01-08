@@ -218,10 +218,10 @@ def main():
     print(f"Weekly Downloads: {weeklyDownloads}")
     print(f"Monthly Downloads: {monthlyDownloads}")
     print(f"Last Update: {lastUpdate}")
-    if overallIndexScore >= 13:
+    if overallIndexScore >= 10:
         redText(f"Overall Index Score: {overallIndexScore} / 20")
         state = "malicious"
-    elif overallIndexScore >= 5 and overallIndexScore < 13:
+    elif overallIndexScore >= 5 and overallIndexScore < 10:
         yellowText(f"Overall Index Score: {overallIndexScore} / 20")
         state = "suspicious"
     else:

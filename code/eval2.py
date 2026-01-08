@@ -2,6 +2,8 @@
 import sqlite3
 from pathlib import Path
 from npmCalls import checkBulkPackageExists
+import subprocess
+import sys
 
 legitimate = [
     "express","react","vue","angular","lodash","moment","axios","chalk","debug","nodemon",
@@ -16,294 +18,127 @@ legitimate = [
     "animejs","chart.js","d3","leaflet","fullcalendar","quill","prosemirror","jest-cli","supertest",
     "cypress","puppeteer","playwright","selenium-webdriver","firebase","aws-sdk","googleapis","stripe",
     "twilio","nodemailer","@types/express","@types/jest","eslint-config-airbnb","eslint-plugin-import",
-    "eslint-plugin-react","eslint-plugin-jsx-a11y","ky",
-    "got",
-    "node-fetch",
-    "undici",
-    "busboy",
-    "multer",
-    "express-session",
-    "connect-mongo",
-    "ioredis",
-    "redis",
-    "bull",
-    "agenda",
-    "node-cron",
-    "pm2",
-    "dotenv-expand",
-    "zod",
-    "joi",
-    "yup",
-    "ajv",
-    "class-validator",
-    "class-transformer",
-    "reflect-metadata",
-    "typeorm",
-    "prisma",
-    "knex",
-    "objection",
-    "better-sqlite3",
-    "sqlite3",
-    "pg",
-    "mysql2",
-    "mongoose-paginate-v2",
-    "bcryptjs",
-    "argon2",
-    "csurf",
-    "rate-limiter-flexible",
-    "compression",
-    "serve-static",
-    "http-errors",
-    "pino-pretty",
-    "winston-daily-rotate-file",
-    "loglevel",
-    "kleur",
-    "zx",
-    "execa",
-    "fs-extra",
-    "globby",
-    "chokidar",
-    "micromatch",
-    "nanoid",
-    "tslib",
-]
+    "eslint-plugin-react","eslint-plugin-jsx-a11y","ky","got","node-fetch","undici","busboy","multer",
+    "express-session","connect-mongo","ioredis","redis","bull","agenda","node-cron","pm2",
+    "dotenv-expand","zod","joi","yup","ajv","class-validator","class-transformer","reflect-metadata",
+    "typeorm","prisma","knex","objection","better-sqlite3","sqlite3","pg","mysql2",
+    "mongoose-paginate-v2","bcryptjs","argon2","csurf","rate-limiter-flexible","compression",
+    "serve-static","http-errors","pino-pretty","winston-daily-rotate-file","loglevel","kleur","zx",
+    "execa","fs-extra","globby","chokidar","micromatch","nanoid","tslib",
 
-malicious = [
-    "acorns", "acorn-node", "express-ajv", "js-argparse", "brace-expansion-cli", 
-    "js-camelcase", "chalkk", "chalks", "chalk-node", "chalk-helper", "chalk-lite", 
-    "ng-chalk", "color-names", "node-commander", "react-commander", "github-commander", 
-    "ng-commander", "commander-js", "commander-core", "debugs", "debugg", "vue-debug", 
-    "debug-js", "debug-module", "execa-pro", "js-form-data", "form-data-js", 
-    "secure-fs-extra", "fs-extra-plus", "ts-glob", "utils-glob", "glob-plus", 
-    "node-globals", "globals-package", "iconv-lite-cli", "ignores", "ignores-cli", 
-    "node-inherits", "inherits-js", "ts-is-number", "is-number", "js-isarray", 
-    "js-yaml-cli", "express-json5", "json5-utils", "js-lru-cache", "lib-lru-cache", 
-    "lru-cache-plus", "mime-db-lite", "mkdirps", "mkdirp-lite", "mss", "react-ms", 
-    "ms-lib", "onetime-cli", "ts-pify", "next-postcss", "postcss-utils", "postcss-v2", 
-    "punycode-cli", "js-qs", "react-qs", "vue-qs", "qs-cli", "react-is-dev", 
-    "node-readable-stream", "resolves", "ts-resolve", "vue-resolve", "resolve-cli", 
-    "rimraff", "ts-schema-utils", "ng-semver", "semver-node", "semver-next", 
-    "react-slash", "slash-cli", "source-maps", "source-map-next", "strip-bom-cli", 
-    "support-color-cli", "tslib-cli", "js-typescript", "cli-typescript", "typescript-api", 
-    "typescript-dev", "typescript-next", "typescript-helper", "uuids", "ts-uuid", 
-    "uuid-node", "uuid-pro", "uuid-lib", "which-server", "wss", "react-ws", 
-    "secure-ws", "ws-api", "ws-cli", "ts-yargs", "yargs-lite", "ws-server", "safe-glob",
-    "glob-js",
-    "ts-lru-cache",
-    "express-lru-cache",
-    "lru-cache-node",
-    "lru-cache-lite",
-    "express-ms",
-    "ms-core",
-    "ms-plus",
-    "react-postcss",
-    "postcss-helper",
-    "postcss-node",
-    "ts-qs",
-    "safe-qs",
-    "qs-lite",
-    "react-resolve",
-    "resolve-js",
-    "resolve-node",
-    "resolve-module",
-    "node-semver",
-    "express-semver",
-    "semver-cli",
-    "semver-lite",
-    "semver-min",
-    "slash-helper",
-    "source-map-helper",
-    "source-map-server",
-    "string-width-cli",
-    "node-typescript",
-    "react-typescript",
-    "express-typescript",
-    "vue-typescript",
-    "utils-typescript",
-    "typescript-utils",
-    "typescript-service",
-    "typescript-cli",
-    "typescript-module",
-    "typescript-plus",
-    "typescript-pkg",
-    "typescript-package",
-    "utils-uuid",
-    "uuid-utils",
-    "uuid-core",
-    "uuid-cli",
-    "uuid-lite",
-    "node-ws",
-    "ng-ws",
-    "vue-ws",
-    "ws-js",
-    "ws-utils",
-    "ws-helper",
-    "ws-core",
-    "ws-service",
-    "ws-server",
-    "ws-plus",
-]
+    "react-dom","react-hook-form","react-query","swr","zustand","recoil","immer","classnames",
+    "prop-types","react-helmet","react-error-boundary","react-virtualized","react-window",
+    "framer-motion","styled-components","emotion","@mui/material","antd","chakra-ui",
+    "semantic-ui-react","headlessui","radix-ui","react-icons","heroicons",
 
-suspicious = [
-    "acorn-node", "ajv-cli", "chalk-cli", "safe-commander", "commander-plus", 
-    "ts-debug", "escape-string-regexp-node", "safe-execa", "find-up-cli", 
-    "react-form-data", "express-form-data", "form-data-utils", "form-data-lite", 
-    "node-fs-extra", "globs", "node-glob", "cli-glob", "glob-utils", "glob-cli", 
-    "js-yml-lite", "lru-cache-plus", "make-dir-cli", "path-exists-cli", "postcss-js", 
-    "postcss-cli", "ts-punycode", "qss", "node-resolve", "safe-resolve", "resolve-pkg", 
-    "resolve-package", "semver-utils", "express-slash", "source-map-js", "source-map-cli", 
-    "strip-ansi-cli", "strip-json-comments-cli", "typescript-node", "typescript-service", 
-    "node-uuid", "js-uuid", "react-uuid", "vue-uuid", "uuid-js", "node-which", 
-    "while-module", "next-ws", "express-ws"
+    "vite","esbuild","swc","babel-loader","ts-jest","vitest","happy-dom","jsdom",
+    "lint-staged","husky","commitlint","semantic-release","standard-version",
+
+    "dotenv-safe","config","rc","cosmiconfig","env-var","convict",
+    "winston-transport","pino-http","express-rate-limit","express-validator",
+
+    "openapi-types","swagger-ui-express","swagger-jsdoc","redoc","openapi-backend",
+    "axios-retry","axios-mock-adapter",
+
+    "formidable","file-type","mime","mime-types","archiver","unzipper","tar","node-stream-zip",
+
+    "jsonwebtoken-decode","jwks-rsa","openid-client","oauth","simple-oauth2",
+
+    "nodemon-webpack-plugin","webpack-cli","webpack-dev-server","mini-css-extract-plugin",
+    "html-webpack-plugin","copy-webpack-plugin",
+
+    "node-sass","sass-embedded","less","less-loader","stylus","stylus-loader",
+
+    "jest-environment-node","jest-watch-typeahead","babel-jest",
+    "nyc","istanbul-lib-coverage","c8",
+
+    "lru-cache","quick-lru","memoizee","p-map","p-limit","p-retry",
+    "async","bluebird","rxjs-compat",
+
+    "dotenv-flow","cross-spawn","which","pkg-dir","find-up","resolve",
+    "strip-ansi","supports-color","wrap-ansi","ansi-regex",
+
+    "node-notifier","open","opn","clipboardy",
+    "ora-spinner","progress","cli-table3",
+
+    "http-proxy","http-proxy-middleware","node-http-proxy",
+    "ws","engine.io","uWebSockets.js",
+
+    "xml2js","fast-xml-parser","yaml","js-yaml",
+    "csv-parser","papaparse",
+
+    "dayjs","luxon","chrono-node",
+    "bcrypt-pbkdf","tweetnacl","uuidv7",
+
+    "@sentry/node","@sentry/browser","newrelic","elastic-apm-node",
+    "prom-client","opentelemetry-api",
+
+    "mongodb","@elastic/elasticsearch","cassandra-driver",
+    "amqplib","kafkajs","mqtt",
+
+    "serverless","serverless-http","node-lambda",
+    "dotenv-cli","npm-run-all","zx-globals"
 ]
 
 
-finalArray = ["express","react","vue","angular","lodash","moment","axios","chalk","debug","nodemon",
-    "eslint","prettier","webpack","babel-core","typescript","rxjs","jest","mocha","chai","sinon",
-    "jquery","sass","tailwindcss","bootstrap","next","nuxt","gatsby","react-router","redux",
-    "redux-thunk","body-parser","cors","dotenv","mongoose","sequelize","graphql","apollo-server",
-    "socket.io","passport","jsonwebtoken","bcrypt","helmet","morgan","rimraf","mkdirp","yargs",
-    "commander","ora","inquirer","figlet","uuid","validator","date-fns","fastify","pino","winston",
-    "concurrently","cross-env","esm","ts-node","@babel/preset-env","@babel/plugin-transform-runtime",
-    "@types/node","@types/react","stylelint","postcss","sass-loader","cssnano","imagemin","sharp",
-    "gulp","grunt","parcel-bundler","rollup","browserify","postman-request","web3","ethers","three",
-    "animejs","chart.js","d3","leaflet","fullcalendar","quill","prosemirror","jest-cli","supertest",
-    "cypress","puppeteer","playwright","selenium-webdriver","firebase","aws-sdk","googleapis","stripe",
-    "twilio","nodemailer","@types/express","@types/jest","eslint-config-airbnb","eslint-plugin-import",
-    "eslint-plugin-react","eslint-plugin-jsx-a11y",     "ky",
-    "got",
-    "node-fetch",
-    "undici",
-    "busboy",
-    "multer",
-    "express-session",
-    "connect-mongo",
-    "ioredis",
-    "redis",
-    "bull",
-    "agenda",
-    "node-cron",
-    "pm2",
-    "dotenv-expand",
-    "zod",
-    "joi",
-    "yup",
-    "ajv",
-    "class-validator",
-    "class-transformer",
-    "reflect-metadata",
-    "typeorm",
-    "prisma",
-    "knex",
-    "objection",
-    "better-sqlite3",
-    "sqlite3",
-    "pg",
-    "mysql2",
-    "mongoose-paginate-v2",
-    "bcryptjs",
-    "argon2",
-    "csurf",
-    "rate-limiter-flexible",
-    "compression",
-    "serve-static",
-    "http-errors",
-    "pino-pretty",
-    "winston-daily-rotate-file",
-    "loglevel",
-    "kleur",
-    "zx",
-    "execa",
-    "fs-extra",
-    "globby",
-    "chokidar",
-    "micromatch",
-    "nanoid",
-    "tslib", "acorns", "acorn-node", "express-ajv", "js-argparse", "brace-expansion-cli", 
-    "js-camelcase", "chalkk", "chalks", "chalk-node", "chalk-helper", "chalk-lite", 
-    "ng-chalk", "color-names", "node-commander", "react-commander", "github-commander", 
-    "ng-commander", "commander-js", "commander-core", "debugs", "debugg", "vue-debug", 
-    "debug-js", "debug-module", "execa-pro", "js-form-data", "form-data-js", 
-    "secure-fs-extra", "fs-extra-plus", "ts-glob", "utils-glob", "glob-plus", 
-    "node-globals", "globals-package", "iconv-lite-cli", "ignores", "ignores-cli", 
-    "node-inherits", "inherits-js", "ts-is-number", "is-number", "js-isarray", 
-    "js-yaml-cli", "express-json5", "json5-utils", "js-lru-cache", "lib-lru-cache", 
-    "lru-cache-plus", "mime-db-lite", "mkdirps", "mkdirp-lite", "mss", "react-ms", 
-    "ms-lib", "onetime-cli", "ts-pify", "next-postcss", "postcss-utils", "postcss-v2", 
-    "punycode-cli", "js-qs", "react-qs", "vue-qs", "qs-cli", "react-is-dev", 
-    "node-readable-stream", "resolves", "ts-resolve", "vue-resolve", "resolve-cli", 
-    "rimraff", "ts-schema-utils", "ng-semver", "semver-node", "semver-next", 
-    "react-slash", "slash-cli", "source-maps", "source-map-next", "strip-bom-cli", 
-    "support-color-cli", "tslib-cli", "js-typescript", "cli-typescript", "typescript-api", 
-    "typescript-dev", "typescript-next", "typescript-helper", "uuids", "ts-uuid", 
-    "uuid-node", "uuid-pro", "uuid-lib", "which-server", "wss", "react-ws", 
-    "secure-ws", "ws-api", "ws-cli", "ts-yargs", "yargs-lite", "ws-server", "safe-glob","glob-js",
-    "ts-lru-cache",
-    "express-lru-cache",
-    "lru-cache-node",
-    "lru-cache-lite",
-    "express-ms",
-    "ms-core",
-    "ms-plus",
-    "react-postcss",
-    "postcss-helper",
-    "postcss-node",
-    "ts-qs",
-    "safe-qs",
-    "qs-lite",
-    "react-resolve",
-    "resolve-js",
-    "resolve-node",
-    "resolve-module",
-    "node-semver",
-    "express-semver",
-    "semver-cli",
-    "semver-lite",
-    "semver-min",
-    "slash-helper",
-    "source-map-helper",
-    "source-map-server",
-    "string-width-cli",
-    "node-typescript",
-    "react-typescript",
-    "express-typescript",
-    "vue-typescript",
-    "utils-typescript",
-    "typescript-utils",
-    "typescript-service",
-    "typescript-cli",
-    "typescript-module",
-    "typescript-plus",
-    "typescript-pkg",
-    "typescript-package",
-    "utils-uuid",
-    "uuid-utils",
-    "uuid-core",
-    "uuid-cli",
-    "uuid-lite",
-    "node-ws",
-    "ng-ws",
-    "vue-ws",
-    "ws-js",
-    "ws-utils",
-    "ws-helper",
-    "ws-core",
-    "ws-service",
-    "ws-server",
-    "ws-plus","acorn-node", "ajv-cli", "chalk-cli", "safe-commander", "commander-plus", 
-    "ts-debug", "escape-string-regexp-node", "safe-execa", "find-up-cli", 
-    "react-form-data", "express-form-data", "form-data-utils", "form-data-lite", 
-    "node-fs-extra", "globs", "node-glob", "cli-glob", "glob-utils", "glob-cli", 
-    "js-yml-lite", "lru-cache-plus", "make-dir-cli", "path-exists-cli", "postcss-js", 
-    "postcss-cli", "ts-punycode", "qss", "node-resolve", "safe-resolve", "resolve-pkg", 
-    "resolve-package", "semver-utils", "express-slash", "source-map-js", "source-map-cli", 
-    "strip-ansi-cli", "strip-json-comments-cli", "typescript-node", "typescript-service", 
-    "node-uuid", "js-uuid", "react-uuid", "vue-uuid", "uuid-js", "node-which", 
-    "while-module", "next-ws", "express-ws"]
+malicious = ['karma-typescript-plugin', 'react-navigation-ts', 'superest', 'react-ace-wrapper', 'lodas', 'prop-types-plus', 'plud', 'redux-actionz', 'plist-parser', 'babel-preset-es2015-script', 'read-next', 'express-art-template', 'aj', 'nfj', 'react-nx', 'oww', 'serve-api', 'bext', 'queue-js', 'chaj', 'vmw', 'racer', 'react-pdv', 'aap', 'yot', 'jsoneditor-plus', 'http-server-plus', 'regex-lite', 'dcount', 'redis-dev', 'aws-retry', 'count', 'cca', 'safe-write', 'http_status_codes', 'errcode', 'graphqltools', 'ndarray-js', 'zlib-node', 'node-fetch-plus', 'react-ms', 'redux-lib', 'cli-lit', 'react-tapable', 'coa-helper', 'react-package', 'ts-schema-utils', 'less-utils', 'jszi', 'iji', 'joss', 'mru', 'y8', 'njb', 'sift-helper', 'react-paginate-next', 'wsm', 'np-webpack-plugin', 'stp', 'style-jsx', 'pink', 'express-graphql-server', 'vue-type-check', 'klon', 'wuf', 'weboscket', 'workerx', 'taxios', 'pinst-lite', 'jsll', 'clipboard-helper', 'exp', 'babel-plugin-import-node', 'nedb-server', 'buo', 'dotenv-next', 'ky-lib', 'dstr', 'rfa', 'express-jwt-decode', 'esmm', 'vclone', 'zod-utils', 'test-helper', 'cel', 'skintone', 'ts-graphql', 'gulp-sass-helper', 'styluss', 'vuetiify', 'dor', 'tspu', 'js-expression', 'user-cli', 'url-templates', 'cookie-sessions', 'react-opener', 'jasmine-ajax-node', 'fetch-service', 'colrs', 'express-deprecation', 'gm-utils', 'soc', 'vu3', 'mz-utils', 'react-word', 'rollup-node', 'secure-url', 'kona', 'markee', 'basicauth', 'node-concat-stream', 'csw', 'nck', 'tbjs', 'guc', 'ts-jsdoc', 'react-camelcase', 'lle', 'browserslist-cli', 'send-ts', 'hsc', 'extend-module', 'request-lib', 'asw-cdk', 'test-cli', 'auth-test', 'radix', 'temp-server', 'naho', 'graphql-request-utils', 'azy', 'gulp-mocha-docker', 'mkdirpp', 'run-sync', 'node-aws', 'safe-vuex', 'ethers-package', 'crypto-util', 'bsae-x', 'discord.js-pro', 'country-flag-icon', 'btoa-pro', 'ander', 'crn', 'react-jest-mock', 'react-hawk', 'oox', 'ndsapi', 'react-zlib', 'pubsubjs', 'ng-process', 'uri', 'ts-fs', 'hap-js', 'babel-preset-es2105', 'ave', 'rollup-plugin', 'reva', 'crypto-table', 'next-temp', 'express-api', 'lgo', 'nce', 'ts-entities', 'vaze', 'array-include', 'git-sha', 'node-github', 'auth-validator', 'gulp-dev', 'react-idb', 'id-promise', 'lighthouse-cli', 'os-name-cli', 'bulma-plus', 'koala', 'nwa', 'viewerjs-next', 'socket.io-wrapper', 'expp', 'safe-assert', 'ci-info-next', 'ijson', 'um', 't2', 'loh', 'node-worker-loader', 'cssp', 'mockjs-lite', 'electron-updater-v2', 'debug-module', 'ioa', 'react-colors', 'less-server', 'vos', 'qhooks', 'path-pkg', 'cssrb', 'express-dox', 'eow', 'pdfjs-dist-min', 'next-clone', 'github-pkg', 'sonner-ts', 'qx', 'wen', 'node-word', 'express-babel', 'sprintf-lite', 'react-native-node', 'next-styled-jsx', 'graphql-tool', 'prompts-utils', 'core-js-v2', 'fakers', 'react-vue', 'node-pdfmake', 'meeow', 'sscs', 'cbor-wrapper', 'readd', 'get-valu', 'deequal', 'ngrok-helper', 'crypto-build', 'lib9', 'rag', 'tlml', 'grpc-core', 'reackt', 'electron-pro', 'safe-parse-json', 'vue-merge-options', 'mac-cli', 'rpc', 'node-browserify', 's3-path', 'pg-next', 'lakejs', 'ansie', 'node-babel', 'cetra', 'ccycle', 'http-assert-plus', 'ts-styled-components', 'htmltags', 'svelte-check-plugin', 'openai-lite', 'wwd', 'ec', 'ts-batch-processor', 'jest-mocks', 'html-minifier-cli', 'safe-chalk', 'mqtt-api', 'pups', 'yyp', 'requestt', 'reac5', 'vue-quill', 'kntl', 'html2canvas-next', 'node-fs-promise', 'yl', 'wsf', 'download-package', 'node-pro', 'senver', 'jquey', 'reacttable', 'eslint-plugin-functional-core', 'babel-preset-geact-app', 'handlebars-server', 'eng', 'vue-swiper', 'centar', 'react-router-cli', 'xaw', 'is-helper', 'node-sitemap', 'mimr', 'nodeinit', 'eventi', 'mongoose-script', 'npm-helper', 'auth-util', 'fsdown', 'ums', 'jseep', 'lees', 'cookie-plugin', 'jest-api', 'cll', 'node-core', 'nxt', 'auth-d', 'react-router-helper', 'zerve', 'nodemailer-js']
+
+suspicious = ['randombytes', 'uid', 'find-package', '0x', 'touch', 'lob', 'rc', 'ow-lite', 'crpyto', 'he', 'karma-cli', 'azure-scheduler', 'css', 'es-set', 'isbuffer', 'next-applicationinsights', 'ced', 'vue-validator', 'webdriver-server', 'sf', 'normalizeurl', 'handlebar', 'jszip-cli', 'isobject', 'vue-cookies', 'node-eval', 'cspell-lib', 'react-json3', 'memory-cache-node', 'durations', 'stylis', 'fs-js', 'puppeteer-core', 'pug-plugin', 'typings-core', 'typescript', 'passport-oauth1', 'react-docgen-plugin', 'apollo-server-core', 'ng-showdown', 'ethers-utils', 'web3-utils', 'prompt', 'temp', 'ripemd160-min', 'ci', 'vue-client-only', 'nop', 'html-minifier-next', 'signals', 'ng-table', 'select', 'express-cors', 'budp', 'is-typedarray', 'babel-plugin-transform-imports-api', 'd', 'us', 'react-select-module', 'emotion-server', 'express-form-data', 'chokidar-cli', 'react-highcharts', 'deepmerge-ts', 'sha', 'stream-combiner', 'cloudinary-core', 'ini-api', 'vue-highlight.js', 'react-ink', 'xml-utils', 'nps', 'ng-redux', 'fwd', 'react-howler', 'node-archiver', 'snapdragon-node', 'jest-html-reporters', 'qa', 'colord', 'adr', 'notion-utils', 'ng-diff-match-patch', 'mo', 'cy', 'react-entities', 'node-promise', 'codeco', 'promis', 'json-server', 'vue-route', 'vue-perfect-scrollbar', 'express-queue', 'replace-in-files', 'sync-each', 'htl-loader', 'imer', 'is-node', 'gtts', 'ts-punycode', 'pug-cli', 'titlecase', 'plugin-error', 'express-basic-auth', 'mdi', 'foreach', 'dotenv-cli', 'level-js', 'react-monaco-editor', 'charset', 'xmlhttprequest-ts', 'estree-walker-ts', 'tedis', 'rg', 'mongodb-core', 'motion-plus', 'bases', 'ent', 'eslint-plugin-regex', 'lodash-core', 'pdfmake-wrapper', 'base-pkg', 'ts-deepmerge', 'jdom', 'sanitize-filename-ts', 'tar', 'istanbul-api', 'parseurl', 'errr', 'webpack-cli', 'wss', 'ol', 'react-shimmer', 'q', 'https', 'zustand-utils', 'trace', 'growl', 'nsp', 'jsrp', 'dom-serialize', 'jsonlint-cli', 'from', 'biginteger', 'vscode-nls-dev', 'crel', 'ts-stream', 'objectpath', 'cr', 'cont']
 
 
-packageState = ["legitimate"] * 154 + ["malicious"] * 157 + ["suspicious"] * 48
+finalArray = legitimate + malicious + suspicious
 
+
+packageState = ["legitimate"] * len(legitimate) + ["malicious"] * len(malicious) + ["suspicious"] * len(suspicious)
+# responses = ['legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', '\x1b[93mignores-cli does not exist. Exiting...\x1b[0m', 'suspicious', 'suspicious', 'suspicious', 'legitimate', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'Scanning installation scripts for js-qs...', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', '\x1b[93msupport-color-cli does not exist. Exiting...\x1b[0m', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'Scanning installation scripts for uuids...', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'Scanning installation scripts for express-typescript...', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'Scanning installation scripts for typescript-module...', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', '\x1b[93mjs-yml-lite does not exist. Exiting...\x1b[0m', 'malicious', 'suspicious', 'suspicious', 'legitimate', 'legitimate', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'legitimate', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', '\x1b[93mwhile-module does not exist. Exiting...\x1b[0m', 'suspicious', 'malicious']
+# responses = ['legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', '\x1b[93mignores-cli does not exist. Exiting...\x1b[0m', 'suspicious', 'suspicious', 'suspicious', 'legitimate', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', '\x1b[93msupport-color-cli does not exist. Exiting...\x1b[0m', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', '\x1b[93mjs-yml-lite does not exist. Exiting...\x1b[0m', 'malicious', 'malicious', 'malicious', 'legitimate', 'legitimate', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'legitimate', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', '\x1b[93mwhile-module does not exist. Exiting...\x1b[0m', 'suspicious', 'malicious']
+responses = ['legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'malicious', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', '\x1b[93mjsonwebtoken-decode does not exist. Exiting...\x1b[0m', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'suspicious', 'legitimate', 'suspicious', 'legitimate', '\x1b[93mora-spinner does not exist. Exiting...\x1b[0m', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'malicious', 'legitimate', 'legitimate', '\x1b[93muWebSockets.js does not exist. Exiting...\x1b[0m', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', '\x1b[93mopentelemetry-api does not exist. Exiting...\x1b[0m', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', 'legitimate', '\x1b[93mzx-globals does not exist. Exiting...\x1b[0m', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'malicious', 'legitimate', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'legitimate', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'legitimate', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'legitimate', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'legitimate', 'malicious', 'legitimate', 'suspicious', 'suspicious', 'legitimate', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'legitimate', 'malicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'legitimate', 'suspicious', 'legitimate', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'malicious', 'suspicious', 'malicious', 'malicious', 'legitimate', 'malicious', 'malicious', 'suspicious', 'legitimate', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'suspicious', 'suspicious', 'suspicious', 'legitimate', 'malicious', 'malicious', 'malicious', 'suspicious', 'legitimate', 'suspicious', 'malicious', 'legitimate', 'malicious', 'legitimate', 'suspicious', 'legitimate', 'malicious', 'suspicious', 'suspicious', 'legitimate', 'suspicious', 'suspicious', 'suspicious', 'legitimate', 'suspicious', 'malicious', 'legitimate', 'suspicious', 'legitimate', 'malicious', 'suspicious', 'suspicious', 'malicious', 'malicious', 'malicious', 'malicious']
+# responses = []
+
+def runNscanForPackage(packageName : str) -> str:
+    try:
+        result = subprocess.run([sys.executable, "code/nscan.py", "install", packageName], capture_output=True, text=True)
+        output = result.stdout.strip().split('\n')
+        lastLine = output[-1].strip()
+        return lastLine
+    except Exception as e:
+        print(f"Error running nscan for package {packageName}: {e}")
+        return "error"
+
+def runAllPackages():
+    for i, package in enumerate(finalArray):
+        print(f"Running nscan for package {i+1}/{len(finalArray)}: {package}")
+        result = runNscanForPackage(package)
+        responses.append(result)
+        print(responses)
+    return responses
+
+def getMetrics():
+    truePositives = 0
+    trueNegatives = 0
+    falsePositives = 0
+    falseNegatives = 0
+    for i in range(len(packageState)):
+        if (packageState[i] == "malicious" and responses[i] == "malicious") or (packageState[i] == "suspicious" and responses[i] == "suspicious"):
+            truePositives += 1
+        elif packageState[i] == "legitimate" and responses[i] == "legitimate":
+            trueNegatives += 1
+        elif packageState[i] == "legitimate" and responses[i] in ["malicious", "suspicious"]:
+            falsePositives += 1
+        elif packageState[i] in ["malicious", "suspicious"] and responses[i] == "legitimate":
+            falseNegatives += 1
+
+    accuracy = (truePositives + trueNegatives) / len(packageState)
+    precision = truePositives / (truePositives + falsePositives)
+    recall = truePositives / (truePositives + falseNegatives)
+
+    print(f"True Positives: {truePositives}")
+    print(f"True Negatives: {trueNegatives}")
+    print(f"False Positives: {falsePositives}")
+    print(f"False Negatives: {falseNegatives}")
+    print(f"Accuracy: {accuracy}")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
 
 def package(packageName: str) -> bool:
     connect = sqlite3.connect("database/legitimate.db")
@@ -313,13 +148,21 @@ def package(packageName: str) -> bool:
     connect.close()
     return count > 0
 
-count = 0 
-for pkg in legitimate:
-    exists = package(pkg)
-    print(f"Package: {pkg}, Exists in DB: {exists}")
-    if exists:
-        count += 1
-print(f"Total packages found in DB: {count} out of {len(legitimate)}")
+# count = 0 
+# for pkg in legitimate:
+#     exists = package(pkg)
+#     print(f"Package: {pkg}, Exists in DB: {exists}")
+#     if exists:
+#         count += 1
+# print(f"Total packages found in DB: {count} out of {len(legitimate)}")
 
 
 print(f"length of finalArray: {len(finalArray)}, length of legitimate: {len(legitimate)}, length of malicious: {len(malicious)}, length of suspicious: {len(suspicious)}")
+
+
+if __name__ == "__main__":
+    # runAllPackages()
+    # print(f"responses: {responses}")
+    print(f"Total Packages: {len(packageState)}, Legitimate count: {len(legitimate)}, Malicious count: {len(malicious)}, Suspicious count: {len(suspicious)}")
+
+    getMetrics()

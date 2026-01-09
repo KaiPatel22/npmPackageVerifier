@@ -5,6 +5,10 @@ from npmCalls import getBatchWeeklyDownloads, getBatchMonthlyDownloads, getBatch
 import sqlite3
 import time
 
+'''
+File used to populate the legitimate database with packages 
+'''
+
 def isPackageInLegimateDatabase(packageName: str) -> bool:
     connect = sqlite3.connect("database/legitimate.db")
     cursor = connect.cursor()
@@ -13,6 +17,9 @@ def isPackageInLegimateDatabase(packageName: str) -> bool:
     connect.close()
     return count > 0
 
+'''
+Removes any heavily depended on packages with low download counts from the database
+'''
 def removeLowDownloads(minWeekly: int = 10000, minMonthly: int = 100000):
     connect = sqlite3.connect("database/legitimate.db")
     cursor = connect.cursor()
@@ -20,6 +27,10 @@ def removeLowDownloads(minWeekly: int = 10000, minMonthly: int = 100000):
     connect.commit()
     connect.close()
 
+
+'''
+Batches and populates the legitimate database with the package information from the api calls
+'''
 def main():
     setupDatabase()
 

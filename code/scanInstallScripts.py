@@ -7,6 +7,13 @@ import platform
 from dataclasses import dataclass
 from typing import List, Dict
 
+'''
+This file is used to check if the package has any malicious or suspicious install scripts within the post or pre install hooks. 
+'''
+
+'''
+Creates a class to hold the install script information
+'''
 @dataclass
 class ScriptInfo:
     scriptName: str
@@ -29,12 +36,12 @@ class ScriptScanner:
         """
         return [
             {
-                "pattern": r"curl\s+.*\|\s*sh",
+                "pattern": r"curl\s+.*\|\s*sh", # Checks for curls commands or commands that end in .sh indiciating a shell script
                 "description": "Downloads and executes remote shell script",
                 "severity": 5,
             },
             {
-                "pattern": r"wget\s+.*\|\s*sh",
+                "pattern": r"wget\s+.*\|\s*sh", # Checks for wget commands or commands that end in .sh indiciating a shell script
                 "description": "Downloads and executes remote shell script",
                 "severity": 5,
             },

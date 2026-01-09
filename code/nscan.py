@@ -7,7 +7,15 @@ from npmCalls import getWeeklyDownloads, getMonthlyDownloads, getLastUpdate, get
 import sqlite3
 from scanInstallScripts import ScriptScanner
 
-def checkInTyposquattedDB(packageName: str) -> int:
+'''
+This file contains the bulk of the implementation of the tool, including the main method that runs the entire flow.
+'''
+
+'''
+Checks if a package is in the typosquatted database and if it is, it returns the package information. 
+Takes in a package name as a string and returns the row from the database if it exists
+'''
+def checkInTyposquattedDB(packageName: str):
     connect = sqlite3.connect('database/typosquatted.db')
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM typosquatted WHERE packageName=?", (packageName,))
@@ -18,7 +26,11 @@ def checkInTyposquattedDB(packageName: str) -> int:
         return result
     return None
 
-def checkInLegitimateDB(packageName: str) -> int:
+'''
+Checks if the package is in the legitimate database and if it is, it returns the package information.
+Takes in a package name as a string and returns the row from the database if it exists
+'''
+def checkInLegitimateDB(packageName: str):
     connect = sqlite3.connect('database/legitimate.db')
     cursor = connect.cursor()
     cursor.execute("SELECT * FROM legitimate WHERE packageName=?", (packageName,))
@@ -29,6 +41,15 @@ def checkInLegitimateDB(packageName: str) -> int:
         return result
     return None
 
+'''
+Takes in the typosquatted package information (row of data).
+Queries the legitimate database to get the original package information for comparison, adds index score based on:
+    The type of technique used (homograph, levenshtein, combosquatting, hyphen/underscore)
+    The difference in weekly and monthly downloads between the original and typosquatted package (if there are lots of downloads for the typosquatted package, this step is ignored)
+    The recency of the last update of the typosquatted package compared to the original package
+
+Returns the index score as an integer
+'''
 def calculateIndexScoreForTyposquatting(originalPackage: str, weeklyDownloads: int, monthlyDownloads: int, lastUpdate: str, message : str) -> int:
     indexScore = 0
     connect = sqlite3.connect('database/legitimate.db')
@@ -91,7 +112,15 @@ def calculateIndexScoreForTyposquatting(originalPackage: str, weeklyDownloads: i
 
     return indexScore
 
+'''
+Calcualtes a suspicious index if the package is not in the typoquatted database (still checks this even if the package is in the legitimate database)
+Takes in the weekly downloads, monthly downloads and last update date as strings
+Assgins index score based on:
+    The consistency between weekly and monthly downloads, a spike or fall in weekly downloads compared to monthly downloads could inidicate an attack
+    The recency of the last update of the package
 
+Returns an index score as an integer
+'''
 def calculateSuspiciousIndexScore(weeklyDownloads: int, monthlyDownloads: int, lastUpdate: str) -> int:
     indexScore = 0 
 
@@ -153,7 +182,11 @@ def calculateSuspiciousIndexScore(weeklyDownloads: int, monthlyDownloads: int, l
 
     return indexScore
 
+'''
+Gets the index score from the scan install scripts package and prints out the risk score
 
+Takes in a package name as a string and returns the risk score as an integer
+'''
 def scanInstallScripts(packageName:str):
     scanner = ScriptScanner(packageName)
     result = scanner.scanPackage()
@@ -166,7 +199,20 @@ def scanInstallScripts(packageName:str):
 
     return result['riskScore']
 
+'''
+Main method to run the entire flow for the tool
 
+First checks all the parameters are correct and valid
+Extracts the type of command and the package name from the command line arguements
+Checks if the package is in a database and if not checks if the package exists (if not, it exits)
+If the package exists but in neither database it generates a general suspicious index score
+If the package is in the typosquatted database it generates a typoquatting index score
+If the package is in the legitimate database it fetches the package information and generates a suspicious index score (incase of supply chain attacks)
+Scans the installation scripts for malicious behaviour and adds to the overall index score
+Prints out a package summary containing the statistics of the package along with prompting the user if they want to continue with the installation or update 
+If yes, passes the command to npm to continue with the installation or update
+If no, aborts and outputs a print statement to verify
+'''
 def main():
     state = ""
     if len(sys.argv) < 3 or (sys.argv[1] != "install" and sys.argv[1] != "update"):

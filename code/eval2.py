@@ -118,15 +118,16 @@ def getMetrics():
     trueNegatives = 0
     falsePositives = 0
     falseNegatives = 0
+
     for i in range(len(packageState)):
         if (packageState[i] == "malicious" and responses[i] == "malicious") or (packageState[i] == "suspicious" and responses[i] == "suspicious"):
             truePositives += 1
         elif packageState[i] == "legitimate" and responses[i] == "legitimate":
             trueNegatives += 1
         elif packageState[i] == "legitimate" and responses[i] in ["malicious", "suspicious"]:
-            falsePositives += 1
+            falsePositives += 1 # If package is legitimate but shows as malicious/suspicious
         elif packageState[i] in ["malicious", "suspicious"] and responses[i] == "legitimate":
-            falseNegatives += 1
+            falseNegatives += 1 # If package is malicious/suspicious but shows as legitimate
 
     accuracy = (truePositives + trueNegatives) / len(packageState)
     precision = truePositives / (truePositives + falsePositives)

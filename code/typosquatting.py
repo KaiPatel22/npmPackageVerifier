@@ -3,6 +3,10 @@ import sqlite3
 from npmCalls import checkPackageExists, checkBulkPackageExists, getBatchWeeklyDownloads, getBatchMonthlyDownloads, getBatchLastUpdate, getWeeklyDownloads, getMonthlyDownloads
 import time 
 
+'''
+File used to generate possible typosquatted package name variations and checks if they exist before adding them to a database
+'''
+
 def createTyposquattingDatabase():
     connect = sqlite3.connect("database/typosquatted.db")
     cursor = connect.cursor()
@@ -87,6 +91,9 @@ def isPackageInNotCreatedDatabase(packageName: str) -> bool:
     connect.close()
     return count > 0
 
+'''
+After generating a full list of possible typosquatetd names, they are filtered down and then batched into 128 package chunks to be processed faster and less likely to hit rate limits
+'''
 def processBatches(generatedList : list):
     batchSize = 128
     filteredPackages = [package for package in generatedList if not isPackageInTyposquattedDatabase(package[0]) and not isPackageInNotCreatedDatabase(package[0])]

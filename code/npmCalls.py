@@ -2,6 +2,12 @@ import requests
 from datetime import datetime
 import time
 
+'''
+This file is used to contain all npm calls that will be made to the registry via API. 
+
+There is functions for getting the downloads and update counts for a singular package as well as a batch function to reduce the number of API calls made
+'''
+
 def dataProccess(url: str, retries: int = 3, delay: float = 15.0):
     attempt = 0
     while attempt < retries:
